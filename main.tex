@@ -1,0 +1,56 @@
+% main.tex
+% Estructura Principal - Documentación de Pruebas (V&V) IEEE 1012-2024
+
+\documentclass[11pt, a4paper, twoside]{report} 
+
+\input{config/01_packages}
+\input{config/03_fonts_colors}
+\input{config/02_layout}
+\input{config/04_macros}
+
+\begin{document}
+
+\include{sections/00_portada}
+
+\clearpage
+\begingroup
+  \makeatletter \let\ps@plain\ps@empty \makeatother
+  \pagestyle{empty} 
+  \tableofcontents
+  \clearpage
+\endgroup
+
+\pagestyle{fancy}   
+\setcounter{page}{1} 
+
+% ==========================================
+% 1. PLAN DE VERIFICACIÓN Y VALIDACIÓN (SVVP)
+% ==========================================
+\chapter{Plan de Verificación y Validación (SVVP)}
+% Alcance, recursos, herramientas de prueba y responsabilidades.
+
+% ==========================================
+% 2. MATRIZ DE TRAZABILIDAD DE REQUISITOS (RTM)
+% ==========================================
+\chapter{Matriz de Trazabilidad de Requisitos (RTM)}
+% Vinculación de requisitos funcionales (IEEE 830) con casos de prueba.
+
+% ==========================================
+% 3. ESPECIFICACIÓN DE CASOS DE PRUEBA
+% ==========================================
+\chapter{Especificación de Casos de Prueba}
+% Aquí incluimos nuestro archivo de ejemplo para ver las tablas en acción
+
+% ==========================================
+% 4. REGISTROS DE PRUEBAS (LOGS) Y DEFECTOS
+% ==========================================
+\chapter{Registros de Pruebas (Logs) y Defectos}
+% Diario cronológico y Reportes de Bugs (Bug Reports).
+
+% ==========================================
+% 5. INFORME DE RESUMEN DE V&V (SVVR)
+% ==========================================
+\chapter{Informe de Resumen de V\&V (SVVR)}
+% Evaluación final de calidad y lista de defectos no resueltos.
+
+\end{document}

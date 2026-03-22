@@ -1,0 +1,57 @@
+% 01_ejemplo_pruebas.tex
+
+\section{Información General del Caso}
+\begin{itemize}
+    \item \textbf{ID del Caso de Prueba:} \textcolor{colorSecundario}{[QA-CP-001]}
+    \item \textbf{Título:} Autenticación de Usuario Administrador.
+    \item \textbf{ID de Requisito:} REQ-FUNC-005.
+    \item \textbf{Prioridad:} Alta.
+    \item \textbf{Ambiente de Prueba:} Ubuntu 22.04, Google Chrome v114, DB PostgreSQL v14.
+\end{itemize}
+
+\textbf{Pre-condiciones:}\\
+El sistema debe estar desplegado. El usuario debe existir en la base de datos con el rol de Administrador.
+
+\section{Procedimiento de Ejecución}
+\begin{TablaCasoPrueba}
+1 & Navegue al módulo de Login (\comando{/auth/login}). & El sistema despliega el formulario de acceso sin errores. & \estadoPass \\
+\hline
+\rowcolor{grisTecnico}
+2 & Ingrese el correo \comando{admin@bytebusters.com} y deje la contraseña vacía. & El sistema valida el campo y muestra la advertencia: "La contraseña es requerida". & \estadoPass \\
+\hline
+3 & Ingrese credenciales correctas y haga clic en 'Ingresar'. & El sistema redirige al Dashboard principal y carga los gráficos en menos de 2 segundos. & \estadoFail \\
+\hline
+\rowcolor{grisTecnico}
+4 & Verifique el token JWT en el almacenamiento local. & El token se genera con los claims correctos de administrador. & \estadoBlocked \\
+\hline
+\end{TablaCasoPrueba}
+
+\section{Post-condiciones y Evidencia}
+\begin{itemize}
+    \item \textbf{Post-condiciones:} Se crea un registro de sesión en la tabla \comando{auth\_logs}.
+    \item \textbf{Evidencia:} Adjunto captura \comando{error\_timeout.png} para el Paso 3.
+\end{itemize}
+
+\vspace{0.5cm}
+\begin{AlertaDefecto}
+El Paso 3 ha fallado. Se procede a generar el siguiente Reporte de Defecto para el equipo de desarrollo.
+\end{AlertaDefecto}
+
+\section{Reporte de Defecto (Bug Report)}
+\begin{BugReport}
+ID de Defecto & BUG-2026-045 \\
+\hline
+\rowcolor{grisTecnico}
+Severidad & \textcolor{red}{\textbf{Crítica}} \\
+\hline
+Pasos para Reproducir & 
+1. Ir a \comando{/auth/login}. \newline 
+2. Ingresar credenciales correctas. \newline 
+3. Hacer clic en Ingresar. \\
+\hline
+\rowcolor{grisTecnico}
+Resultado Actual & La pantalla se queda en blanco (Timeout) tras 30 segundos. \\
+\hline
+Evidencia & Ver log del servidor: \comando{/var/log/nginx/error.log} \\
+\hline
+\end{BugReport}

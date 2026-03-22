@@ -1,0 +1,56 @@
+% 04_macros.tex
+% Componentes de Control de Calidad (Bug Reports y Test Cases)
+
+% 1. Macros de Estado (Celdas condicionales)
+\newcommand{\estadoPass}{\cellcolor{bgPass}\textcolor{white}{\sffamily\bfseries PASS}}
+\newcommand{\estadoFail}{\cellcolor{bgFail}\textcolor{white}{\sffamily\bfseries FAIL}}
+\newcommand{\estadoBlocked}{\cellcolor{bgBlocked}\textcolor{white}{\sffamily\bfseries BLOCKED}}
+\newcommand{\comando}[1]{{\fontfamily{pcr}\fontsize{9}{10.8}\selectfont\colorbox{grisTecnico}{\texttt{#1}}}}
+
+% 2. Entorno: Especificación de Casos de Prueba (Ejecución)
+% Usa tipografía sans-serif a 9pt para alta densidad de datos
+\newenvironment{TablaCasoPrueba}{
+    \renewcommand{\arraystretch}{1.5}
+    \vspace{0.3cm}
+    \noindent
+    \fontsize{9}{10.8}\selectfont\sffamily
+    \tabularx{\textwidth}{|c|X|X|c|}
+    \hline
+    \rowcolor{headerTabla}
+    \textbf{Paso \#} & \textbf{Acción (Instrucción)} & \textbf{Resultado Esperado (Criterio)} & \textbf{Estado} \\
+    \hline
+}{
+    \endtabularx
+    \vspace{0.3cm}
+}
+
+% 3. Entorno: Reporte de Defectos (Bug Report)
+\newenvironment{BugReport}{
+    \renewcommand{\arraystretch}{1.5}
+    \vspace{0.3cm}
+    \noindent
+    \fontsize{9}{10.8}\selectfont\sffamily
+    \tabularx{\textwidth}{|>{\bfseries\color{colorPrimario}}l|X|}
+    \hline
+    \rowcolor{headerTabla}
+    Campo & Contenido \\
+    \hline
+}{
+    \endtabularx
+    \vspace{0.3cm}
+}
+
+% Nota Técnica general preservada
+\newtcolorbox{NotaTecnica}{
+    colback=white,
+    colframe=bordeNotaTecnica,
+    boxrule=1.2pt,
+    arc=2pt,
+    title={\faInfoCircle\ \textbf{Nota de Configuración}},
+    coltitle=bordeNotaTecnica,
+    fonttitle=\sffamily,
+    attach title to upper=\par\vspace{0.2em}
+}
+
+% Cajas originales de advertencia preservadas
+\newtcolorbox{AlertaDefecto}{colback=white, colframe=bgFail, boxrule=1.2pt, arc=2pt, title={\faBug\ \textbf{Defecto Crítico Detectado}}, coltitle=bgFail, fonttitle=\sffamily, attach title to upper=\par\vspace{0.2em}}
