@@ -16,14 +16,16 @@
 }
 \onehalfspacing    
 
-\titleformat{\chapter}[hang]
-  {\sffamily\bfseries\fontsize{16}{19.2}\selectfont\color{colorPrimario}}
-  {\thechapter.}
-  {1em}{}
-\titlespacing*{\chapter}{0pt}{-20pt}{20pt}
+% Formato de Capítulo - Estilo Clásico de LaTeX
+\titleformat{\chapter}[display]
+  {\sffamily\bfseries\color{colorTitle}} % Formato general del bloque
+  {\huge\chaptertitlename\ \thechapter}     % "Capítulo X" (tamaño grande)
+  {20pt}                                    % Separación entre el número y el título
+  {\Huge}                                   % Formato específico del título del capítulo
+\titlespacing*{\chapter}{0pt}{50pt}{40pt}
 
 \titleformat{\section}[hang]
-  {\sffamily\bfseries\fontsize{14}{16.8}\selectfont\color{colorPrimario}}
+  {\sffamily\bfseries\fontsize{14}{16.8}\selectfont\color{colorTitle}}
   {\thesection.}
   {1em}{}
 
@@ -47,8 +49,8 @@
 \fancyhead[R]{\sffamily\footnotesize\textcolor{colorPrimario}{\textbf{ID: \currentDocID\ | Estado: \textit{\currentDocEstado}}}}
 
 % Pie de Página: Firmas Digitales (Izq) | Paginación y Versión (Der)
-\fancyfoot[L]{\sffamily\footnotesize\textcolor{grisISO}{SME: Pendiente | QA Lead: J. Pardo}}
-\fancyfoot[R]{\sffamily\footnotesize\textcolor{grisISO}{v1.0 | Pág. \thepage\ de \pageref{LastPage}}}
+\fancyfoot[L]{\sffamily\footnotesize\textcolor{grisISO}{SM: J.D. Pardo Pozo | QA Lead: C.B. Quispe Flores}}
+\fancyfoot[R]{\sffamily\footnotesize\textcolor{grisISO}{Pág. \thepage\ de \pageref{LastPage}}}
 
 \renewcommand{\headrulewidth}{0.4pt}
 \renewcommand{\footrulewidth}{0.4pt}
