@@ -1,0 +1,749 @@
+% ==========================================
+% DEFINICIÓN DE VERSIÓN Y METADATOS (Insertar en main.tex o 02_layout.tex)
+% ==========================================
+\setDocID{QA-V\&V-SPRINT2}
+\setDocEstado{Release v1.1.0}
+
+% ==========================================
+% CAPÍTULO ÚNICO: SPRINT 2
+% ==========================================
+\chapter{Ciclo de Verificación y Validación para el Sprint 2}
+\label{ch:sprint2}
+
+El presente capítulo documenta de manera exhaustiva el segundo ciclo de Verificación y Validación (V\&V) ejecutado para la plataforma EthosHub, correspondiente al Sprint 2. Elaborado bajo los lineamientos y rigor técnico del estándar IEEE 1012-2024, este informe consolida la estrategia de pruebas, la trazabilidad de los requisitos y los resultados de la ejecución técnica.\par
+
+Durante esta iteración, el esfuerzo de Control de Calidad (QA) se concentró en auditar la estabilidad e integridad funcional del núcleo de la Matriz de Habilidades y Validación Social. Esto abarca el registro, gestión y agrupación categórica del \textit{stack} tecnológico y habilidades blandas, la jerarquización de competencias mediante el mecanismo de selección de 'Top 3', y la optimización de visibilidad digital bajo criterios de SEO orientados a reclutadores técnicos. Asimismo, se validó el motor de búsqueda avanzado por habilidades y las herramientas de moderación administrativa para la normalización de etiquetas. A través de la ejecución sistemática de casos de prueba, el reporte documentado de defectos y su posterior remediación, este ciclo certifica la robustez de los módulos implementados y fundamenta el dictamen de calidad para su liberación a producción.
+
+\newpage
+\begin{NotaTecnica}
+El objetivo de este sprint se centra en implementar el núcleo funcional de la Matriz de Habilidades y Validación Social de la plataforma EthosHub. Esto incluye el registro y gestión del stack tecnológico y habilidades blandas, la jerarquización de competencias mediante el 'Top 3', la optimización de visibilidad bajo criterios de SEO para reclutadores, el motor de búsqueda avanzado por habilidades y las herramientas de moderación administrativa para la normalización de etiquetas. Los resultados de este ciclo determinarán la viabilidad del pase a producción (ver, pág. \pageref{sec:svvr_sp2}, sec. \ref{sec:svvr_sp2}).
+\end{NotaTecnica}
+
+% ------------------------------------------
+% 1. PLAN DE VERIFICACIÓN Y VALIDACIÓN
+% ------------------------------------------
+\section{Plan de Pruebas (Test Plan) - Sprint 2}
+\label{sec:plan_pruebas_sp2}
+
+\subsection{Alcance}
+El presente plan de pruebas abarca la validación funcional de los módulos principales del sistema, con el objetivo de asegurar el correcto comportamiento de las funcionalidades más críticas. Dentro de este alcance se incluyen los procesos de registro y gestión de habilidades técnicas y blandas, la selección y jerarquización del 'Top 3' de competencias, la configuración de visibilidad del perfil orientada a reclutadores bajo criterios de SEO, y el motor de búsqueda avanzado por habilidades. Asimismo, se contempla la moderación administrativa para la normalización y estandarización de etiquetas de habilidades. La cobertura de estas funcionalidades se detalla en la Matriz de Trazabilidad (ver, pág. \pageref{sec:rtm_sp2}, sec. \ref{sec:rtm_sp2}).
+
+\subsection{Objetivo}
+El principal objetivo de este plan de pruebas es verificar que las funcionalidades implementadas cumplan con los criterios de aceptación definidos para cada historia de usuario. Asimismo, se busca validar que los flujos de gestión de habilidades, búsqueda avanzada y moderación de etiquetas funcionen de manera correcta y sin interrupciones.
+
+\subsection{Entorno y Herramientas}
+\begin{itemize}[noitemsep]
+    \item \textbf{Gestión de código:} Git / GitHub
+    \item \textbf{Backend:} Java 17, Spring Boot 3.4.1
+    \item \textbf{Frontend:} React + Vite + Tailwind + TypeScript
+    \item \textbf{Base de Datos:} PostgreSQL v15.10
+    \item \textbf{Herramientas de prueba:} DevTools (logs, network), Neon.tech (pruebas de BD)
+    \item \textbf{Ambientes:} Entorno de desarrollo (local)
+\end{itemize}
+
+\subsection{Criterios de Entrada y Salida}
+El proceso de pruebas se considera finalizado cuando todos los casos de prueba (ver, pág. \pageref{sec:test_cases_sp2}, sec. \ref{sec:test_cases_sp2}) han sido ejecutados. Asimismo, los bugs críticos y de alta prioridad (ver, pág. \pageref{sec:bug_reports_sp2}, sec. \ref{sec:bug_reports_sp2}) deben encontrarse resueltos o debidamente controlados. 
+
+\textbf{Criterios de Ejecución Especiales:} Para el presente Sprint, se determina que \textbf{no se aplicó criterio de suspensión}, ya que los defectos encontrados no bloquearon el flujo principal de pruebas de manera catastrófica. Por consiguiente, \textbf{tampoco fue necesario aplicar un criterio de reanudación}.
+
+% ------------------------------------------
+% 2. MATRIZ DE TRAZABILIDAD (RTM)
+% ------------------------------------------
+\clearpage
+\section{Matriz de Trazabilidad de Requisitos (RTM)}
+\label{sec:rtm_sp2}
+
+A continuación, se mapean las Historias de Usuario del Backlog del Sprint 2 con su estado de desarrollo y prioridad, base fundamental para la posterior ejecución de los Casos de Prueba. Para este reporte de V\&V, se consolida el estado final tras la remediación de defectos.
+
+\vspace{0.3cm}
+\noindent
+\fontsize{9}{10.8}\selectfont\sffamily
+\begin{tabularx}{\textwidth}{|l|X|c|c|c|}
+\hline
+\rowcolor{headerTabla}
+\textbf{ID} & \textbf{Historia de Usuario} & \textbf{Est. Esf.} & \textbf{Prioridad} & \textbf{Estado Final} \\
+\hline
+IDEN-007 & Moderación y Auditoría (Admin Tool). & 13 & Alta & \estadoPass \\
+\hline
+\rowcolor{grisTecnico}
+MHVS-001 & Registro Inicial de Hard y Soft Skills. & 5 & Alta & \estadoPass \\
+\hline
+MHVS-002 & Edición y Gestión del Stack Tecnológico y Habilidades. & 3 & Alta & \estadoPass \\
+\hline
+\rowcolor{grisTecnico}
+IDEN-008 & Optimización Técnica y SEO del Perfil. & 5 & Media & \estadoPass \\
+\hline
+MHVS-004 & Selección y Re-Ordenamiento de Top 3 Skills. & 5 & Media & \estadoPass \\
+\hline
+\rowcolor{grisTecnico}
+MHVS-005 & Agrupación Categórica de Hard Skills en el Stack. & 5 & Baja & \estadoPass \\
+\hline
+MHVS-003 & Visualización para Reclutador. & 5 & Media & \estadoPass \\
+\hline
+\rowcolor{grisTecnico}
+MHVS-006 & Motor de Búsqueda y Filtrado de Perfiles por Habilidades. & 5 & Alta & \estadoPass \\
+\hline
+\end{tabularx}
+
+% ------------------------------------------
+% 3. CASOS DE PRUEBA
+% ------------------------------------------
+\section{Ejecución de Casos de Prueba}
+\label{sec:test_cases_sp2}
+
+Se ejecutó un total de 80 Casos de Prueba en el presente ciclo. A continuación se detalla la matriz de ejecución original (estado inicial previo a remediación de bugs) correspondiente a las épicas definidas en la Matriz RTM (ver, pág. \pageref{sec:rtm_sp2}, sec. \ref{sec:rtm_sp2}).
+
+\subsection{MHVS-001: Registro Inicial de Hard y Soft Skills}
+\noindent
+\fontsize{9}{10.8}\selectfont\sffamily
+\begin{tabularx}{\textwidth}{|l|X|c|}
+\hline
+\rowcolor{headerTabla}
+\textbf{ID Caso} & \textbf{Descripción de la Verificación} & \textbf{Estado} \\
+\hline
+MHVS-001-01 & Verificar que al buscar 'React', seleccionar nivel 'Mid' y guardar, la habilidad se almacene en BD y se visualice en el stack. & \estadoPass \\ \hline
+\rowcolor{grisTecnico}
+MHVS-001-02 & Verificar que al teclear una tecnología inexistente, aparezca la opción 'Crear nueva etiqueta' y permita registrarla. & \estadoPass \\ \hline
+MHVS-001-03 & Verificar bloqueo de guardado al omitir el nivel de dominio. & \estadoPass \\ \hline
+\rowcolor{grisTecnico}
+MHVS-001-04 & Verificar deshabilitación de guardado si la habilidad ya existe en el perfil del usuario. & \estadoPass \\ \hline
+MHVS-001-05 & Verificar sugerencias automáticas al ingresar 2 caracteres. & \estadoPass \\ \hline
+\rowcolor{grisTecnico}
+MHVS-001-06 & Verificar validación al superar límite de caracteres en 'Caso de Éxito' (Soft Skill). & \estadoPass \\ \hline
+MHVS-001-07 & Verificar rechazo de petición al intentar registrar la habilidad número 51. & \estadoPass \\ \hline
+\rowcolor{grisTecnico}
+MHVS-001-08 & Verificar actualización de nivel de dominio sin necesidad de borrado previo. & \estadoPass \\ \hline
+MHVS-001-09 & Verificar que la 'nueva etiqueta' aparezca en catálogo global como pendiente de revisión. & \estadoFail \\ \hline
+\rowcolor{grisTecnico}
+MHVS-001-10 & Verificar que el error 500 no borre los datos ingresados en el formulario. & \estadoFail \\ \hline
+\end{tabularx}
+
+\clearpage
+\subsection{MHVS-002: Edición y Gestión del Stack Tecnológico}
+\noindent
+\fontsize{9}{10.8}\selectfont\sffamily
+\begin{tabularx}{\textwidth}{|l|X|c|}
+\hline
+\rowcolor{headerTabla}
+\textbf{ID Caso} & \textbf{Descripción de la Verificación} & \textbf{Estado} \\
+\hline
+MHVS-002-01 & Verificar modal de confirmación al intentar eliminar habilidad. & \estadoFail \\ \hline
+\rowcolor{grisTecnico}
+MHVS-002-02 & Verificar desaparición asíncrona de habilidad tras eliminación. & \estadoPass \\ \hline
+MHVS-002-03 & Verificar actualización en matriz al editar nivel de dominio. & \estadoPass \\ \hline
+\rowcolor{grisTecnico}
+MHVS-002-04 & Verificar cambio a rojo del contador con exactamente 250 caracteres. & \estadoPass \\ \hline
+MHVS-002-05 & Verificar bloqueo de input al superar 250 caracteres. & \estadoPass \\ \hline
+\rowcolor{grisTecnico}
+MHVS-002-06 & Verificar que edición de descripción no duplique la etiqueta en BD. & \estadoPass \\ \hline
+MHVS-002-07 & Verificar aparición de spinner de carga durante el guardado. & \estadoPass \\ \hline
+\rowcolor{grisTecnico}
+MHVS-002-08 & Verificar bloqueo de guardado con campo de nivel vacío. & \estadoPass \\ \hline
+MHVS-002-09 & Verificar persistencia de cambios al cerrar y reiniciar sesión. & \estadoPass \\ \hline
+\rowcolor{grisTecnico}
+MHVS-002-10 & Verificar mantenimiento de datos en formulario ante falla de red. & \estadoFail \\ \hline
+\end{tabularx}
+
+\subsection{MHVS-003: Visualización para Reclutador}
+\noindent
+\fontsize{9}{10.8}\selectfont\sffamily
+\begin{tabularx}{\textwidth}{|l|X|c|}
+\hline
+\rowcolor{headerTabla}
+\textbf{ID Caso} & \textbf{Descripción de la Verificación} & \textbf{Estado} \\
+\hline
+MHVS-003-01 & Verificar visualización de foto, nombre completo y titular. & \estadoPass \\ \hline
+\rowcolor{grisTecnico}
+MHVS-003-02 & Verificar que 'Skills Principales' se muestran en bloque destacado. & \estadoPass \\ \hline
+MHVS-003-03 & Verificar renderizado de badge/indicador de dominio por habilidad. & \estadoPass \\ \hline
+\rowcolor{grisTecnico}
+MHVS-003-04 & Verificar indicador visual de 'Top' en las habilidades destacadas. & \estadoPass \\ \hline
+MHVS-003-05 & Verificar que categorías sin habilidades no se rendericen. & \estadoPass \\ \hline
+\rowcolor{grisTecnico}
+MHVS-003-06 & Verificar que habilidades sin categoría se agrupen en 'Otras Tecnologías'. & \estadoPass \\ \hline
+MHVS-003-07 & Verificar estado vacío en perfiles sin habilidades registradas. & \estadoPass \\ \hline
+\rowcolor{grisTecnico}
+MHVS-003-08 & Verificar modo solo lectura (ausencia de botones editar/eliminar). & \estadoPass \\ \hline
+MHVS-003-09 & Verificar uniformidad de márgenes y paddings entre categorías. & \estadoPass \\ \hline
+\rowcolor{grisTecnico}
+MHVS-003-10 & Verificar renderizado de subtítulos en estricto orden alfabético. & \estadoPass \\ \hline
+\end{tabularx}
+
+\subsection{MHVS-004: Selección y Re-Ordenamiento de Top 3 Skills}
+\noindent
+\fontsize{9}{10.8}\selectfont\sffamily
+\begin{tabularx}{\textwidth}{|l|X|c|}
+\hline
+\rowcolor{headerTabla}
+\textbf{ID Caso} & \textbf{Descripción de la Verificación} & \textbf{Estado} \\
+\hline
+MHVS-004-01 & Verificar activación de estrella amarilla y traslado al bloque Top. & \estadoFail \\ \hline
+\rowcolor{grisTecnico}
+MHVS-004-02 & Verificar bloqueo al intentar destacar una 4ta habilidad. & \estadoPass \\ \hline
+MHVS-004-03 & Verificar actualización del contador y retorno a lista al desmarcar Top. & \estadoFail \\ \hline
+\rowcolor{grisTecnico}
+MHVS-004-04 & Verificar liberación de cupo (de 0/3 a 1/3) al eliminar una Top Skill. & \estadoPass \\ \hline
+MHVS-004-05 & Verificar persistencia de posición y estrella tras recargar página. & \estadoPass \\ \hline
+\rowcolor{grisTecnico}
+MHVS-004-06 & Verificar funcionalidad de arrastrar y soltar (drag and drop) de Top Skills. & \estadoPass \\ \hline
+MHVS-004-07 & Verificar vista pública sin controles de edición visibles. & \estadoPass \\ \hline
+\rowcolor{grisTecnico}
+MHVS-004-08 & Verificar estado vacío indicativo para destacar habilidades. & \estadoPass \\ \hline
+MHVS-004-09 & Verificar estado de carga en ícono para evitar doble clic. & \estadoPass \\ \hline
+\rowcolor{grisTecnico}
+MHVS-004-10 & Verificar comportamiento touch de estrella en vista móvil. & \estadoPass \\ \hline
+\end{tabularx}
+
+\clearpage
+\subsection{MHVS-005: Agrupación Categórica de Hard Skills en el Stack}
+\noindent
+\fontsize{9}{10.8}\selectfont\sffamily
+\begin{tabularx}{\textwidth}{|l|X|c|}
+\hline
+\rowcolor{headerTabla}
+\textbf{ID Caso} & \textbf{Descripción de la Verificación} & \textbf{Estado} \\
+\hline
+MHVS-005-01 & Verificar generación automática de subtítulos basados en categoría. & \estadoPass \\ \hline
+\rowcolor{grisTecnico}
+MHVS-005-02 & Verificar agrupación de múltiples habilidades bajo un mismo contenedor. & \estadoPass \\ \hline
+MHVS-005-03 & Verificar uso de master\_tag\_id para definir categoría de renderizado. & \estadoPass \\ \hline
+\rowcolor{grisTecnico}
+MHVS-005-04 & Verificar agrupación de habilidades sin categoría en 'Otras Tecnologías'. & \estadoFail \\ \hline
+MHVS-005-05 & Verificar renderizado exclusivo de 'Otras' si todo carece de categoría. & \estadoPass \\ \hline
+\rowcolor{grisTecnico}
+MHVS-005-06 & Verificar ordenamiento alfabético case-insensitive de categorías. & \estadoPass \\ \hline
+MHVS-005-07 & Verificar orden consistente de habilidades internas por categoría. & \estadoPass \\ \hline
+\rowcolor{grisTecnico}
+MHVS-005-08 & Verificar recálculo asíncrono de categorías al añadir/eliminar. & \estadoFail \\ \hline
+MHVS-005-09 & Verificar ocultamiento automático de categoría sin habilidades. & \estadoPass \\ \hline
+\rowcolor{grisTecnico}
+MHVS-005-10 & Verificar diferenciación visual clara de los encabezados de categoría. & \estadoPass \\ \hline
+\end{tabularx}
+
+\subsection{MHVS-006: Motor de Búsqueda y Filtrado}
+\noindent
+\fontsize{9}{10.8}\selectfont\sffamily
+\begin{tabularx}{\textwidth}{|l|X|c|}
+\hline
+\rowcolor{headerTabla}
+\textbf{ID Caso} & \textbf{Descripción de la Verificación} & \textbf{Estado} \\
+\hline
+MHVS-006-01 & Verificar retorno de lista cruzada con entrada de habilidad en barra. & \estadoPass \\ \hline
+\rowcolor{grisTecnico}
+MHVS-006-02 & Verificar exactitud al cruzar texto libre + filtro 'Nivel de Dominio'. & \estadoPass \\ \hline
+MHVS-006-03 & Verificar tarjeta de candidato con foto, nombre, titular y Top 3 Skills. & \estadoPass \\ \hline
+\rowcolor{grisTecnico}
+MHVS-006-04 & Verificar que botón 'Ver Perfil' fuerce apertura en nueva pestaña. & \estadoPass \\ \hline
+MHVS-006-05 & Verificar accesibilidad por teclado (Tab, Espacio, Enter) en Dashboard. & \estadoPass \\ \hline
+\rowcolor{grisTecnico}
+MHVS-006-06 & Verificar paginación backend y controles en grilla masiva. & \estadoPass \\ \hline
+MHVS-006-07 & Verificar actualización asíncrona de resultados sin parpadeo/recarga. & \estadoPass \\ \hline
+\rowcolor{grisTecnico}
+MHVS-006-08 & Verificar reinicio a estado inicial al limpiar barra y filtros. & \estadoPass \\ \hline
+MHVS-006-09 & Verificar sanitización de inputs inusuales antes del fetch a API. & \estadoPass \\ \hline
+\rowcolor{grisTecnico}
+MHVS-006-10 & Verificar layout responsivo del Dashboard, sidebar y grilla en móviles. & \estadoPass \\ \hline
+\end{tabularx}
+
+\subsection{IDEN-007: Moderación y Auditoría (Admin Tool)}
+\noindent
+\fontsize{9}{10.8}\selectfont\sffamily
+\begin{tabularx}{\textwidth}{|l|X|c|}
+\hline
+\rowcolor{headerTabla}
+\textbf{ID Caso} & \textbf{Descripción de la Verificación} & \textbf{Estado} \\
+\hline
+TC-IDEN-007-01 & Verificar bloqueo y redirección de usuario sin rol administrativo. & \estadoPass \\ \hline
+\rowcolor{grisTecnico}
+TC-IDEN-007-02 & Verificar acceso correcto al panel por parte de Administrador. & \estadoPass \\ \hline
+TC-IDEN-007-03 & Verificar 1ra confirmación al intentar eliminar cuenta permanentemente. & \estadoPass \\ \hline
+\rowcolor{grisTecnico}
+TC-IDEN-007-04 & Verificar 2da confirmación de seguridad para eliminación de cuenta. & \estadoPass \\ \hline
+TC-IDEN-007-05 & Verificar aborto de eliminación si se cancela alguna confirmación. & \estadoPass \\ \hline
+\rowcolor{grisTecnico}
+TC-IDEN-007-06 & Verificar filtro de perfiles por Nombre. & \estadoFail \\ \hline
+TC-IDEN-007-07 & Verificar filtro de perfiles por Email. & \estadoPass \\ \hline
+\rowcolor{grisTecnico}
+TC-IDEN-007-08 & Verificar filtro de perfiles por ID. & \estadoPass \\ \hline
+TC-IDEN-007-09 & Verificar generación de archivo CSV con base de datos de perfiles. & \estadoPass \\ \hline
+\rowcolor{grisTecnico}
+TC-IDEN-007-10 & Verificar completitud de los datos contenidos en el CSV. & \estadoFail \\ \hline
+\end{tabularx}
+
+\clearpage
+\subsection{IDEN-008: Optimización Técnica y SEO del Perfil}
+\noindent
+\fontsize{9}{10.8}\selectfont\sffamily
+\begin{tabularx}{\textwidth}{|l|X|c|}
+\hline
+\rowcolor{headerTabla}
+\textbf{ID Caso} & \textbf{Descripción de la Verificación} & \textbf{Estado} \\
+\hline
+IDEN-008-01 & Verificar activación de indicador de carga al subir imagen. & \estadoPass \\ \hline
+\rowcolor{grisTecnico}
+IDEN-008-02 & Verificar renderizado de imagen de perfil post-carga. & \estadoPass \\ \hline
+IDEN-008-03 & Verificar generación de meta etiquetas Open Graph. & \estadoPass \\ \hline
+\rowcolor{grisTecnico}
+IDEN-008-04 & Verificar adaptación responsiva del Hero (sin deformación). & \estadoPass \\ \hline
+IDEN-008-05 & Verificar carga optimizada de imágenes (formato WebP). & \estadoPass \\ \hline
+\rowcolor{grisTecnico}
+IDEN-008-06 & Verificar indexabilidad técnica SEO por motores de búsqueda. & \estadoPass \\ \hline
+IDEN-008-07 & Verificar acceso a Vanity URL sin autenticación previa. & \estadoPass \\ \hline
+\rowcolor{grisTecnico}
+IDEN-008-08 & Verificar tiempo de carga óptimo del perfil. & \estadoPass \\ \hline
+IDEN-008-09 & Verificar vista previa en RRSS con datos dinámicos. & \estadoPass \\ \hline
+\rowcolor{grisTecnico}
+IDEN-008-10 & Verificar imagen placeholder si usuario no posee foto. & \estadoPass \\ \hline
+\end{tabularx}
+
+% ------------------------------------------
+% 4. REGISTRO DE DEFECTOS
+% ------------------------------------------
+\section{Registros de Defectos (Bug Reports)}
+\label{sec:bug_reports_sp2}
+
+\begin{AlertaDefecto}
+Durante el ciclo se documentaron \textbf{18 defectos} funcionales y técnicos (incluyendo bugs detectados en pruebas exploratorias o cruzadas). Todos los incidentes reportados a continuación fueron procesados y \textbf{remediados exitosamente} antes de la liberación de la versión.
+\end{AlertaDefecto}
+
+% BUG 001
+\begin{BugReport}
+ID de Defecto & \textbf{BUG-001}: El contador de cupos 'X/3 cupos usados' no se actualiza en tiempo real al desmarcar una Top Skill. (TC-MHVS-004-03) \\
+\hline
+\rowcolor{grisTecnico}
+Severidad & Mayor \\
+\hline
+Prioridad & Alta \\
+\hline
+\rowcolor{grisTecnico}
+Pasos para Reproducir & 
+\raggedright\arraybackslash
+1. Iniciar sesión como Usuario con 3 Top Skills fijadas. \newline
+2. Acceder a la vista de edición del perfil. \newline
+3. Hacer clic en la estrella activa para desmarcarla. \newline
+4. Observar el indicador de cupos. \\
+\hline
+Resultado Esperado & El contador debe pasar a '2/3 cupos usados' sin recargar la página. \\
+\hline
+\rowcolor{grisTecnico}
+Resultado Actual & \raggedright\arraybackslash El contador permanece en '3/3 cupos usados' hasta recargar manualmente. \\
+\hline
+\end{BugReport}
+
+\clearpage
+% BUG 002
+\begin{BugReport}
+ID de Defecto & \textbf{BUG-002}: La animación de destello en estrella no se ejecuta en Safari. (TC-MHVS-004-01) \\
+\hline
+\rowcolor{grisTecnico}
+Severidad & Menor \\
+\hline
+Prioridad & Baja \\
+\hline
+\rowcolor{grisTecnico}
+Pasos para Reproducir & 
+\raggedright\arraybackslash
+1. Acceder al perfil desde Safari. \newline
+2. Navegar a edición de habilidades. \newline
+3. Tocar la estrella no destacada y observar animación. \\
+\hline
+Resultado Esperado & La estrella muestra animación de rebote/destello. \\
+\hline
+\rowcolor{grisTecnico}
+Resultado Actual & \raggedright\arraybackslash Cambia de color abruptamente por falta de compatibilidad del prefijo \comando{-webkit-}. \\
+\hline
+\end{BugReport}
+
+% BUG 003
+\begin{BugReport}
+ID de Defecto & \textbf{BUG-003}: El sistema permite duplicar etiquetas si varían en mayúsculas. (TC-MHVS-001-09) \\
+\hline
+\rowcolor{grisTecnico}
+Severidad & Media \\
+\hline
+Prioridad & Media \\
+\hline
+\rowcolor{grisTecnico}
+Pasos para Reproducir & 
+\raggedright\arraybackslash
+1. Buscar 'REACT' en el catálogo. \newline
+2. Hacer clic en 'Crear nueva etiqueta' y guardar. \\
+\hline
+Resultado Esperado & Detectar 'REACT' como 'React' (Case Sensitivity) e impedir duplicado. \\
+\hline
+\rowcolor{grisTecnico}
+Resultado Actual & \raggedright\arraybackslash Crea nueva entrada global redundante. \\
+\hline
+\end{BugReport}
+
+% BUG 004
+\begin{BugReport}
+ID de Defecto & \textbf{BUG-004}: Botón Guardar bloqueado permanentemente tras error 500. (TC-MHVS-001-10) \\
+\hline
+\rowcolor{grisTecnico}
+Severidad & Mayor \\
+\hline
+Prioridad & Alta \\
+\hline
+\rowcolor{grisTecnico}
+Pasos para Reproducir & 
+\raggedright\arraybackslash
+1. Llenar formulario de habilidad. \newline
+2. Simular pérdida de red y Guardar. \newline
+3. Observar estado del botón tras fallo. \\
+\hline
+Resultado Esperado & Botón se rehabilita para reintento. \\
+\hline
+\rowcolor{grisTecnico}
+Resultado Actual & \raggedright\arraybackslash Permanece en 'loading' indefinidamente. \\
+\hline
+\end{BugReport}
+
+\clearpage
+% BUG 005
+\begin{BugReport}
+ID de Defecto & \textbf{BUG-005}: Subtítulos de categorías vacías se renderizan en interfaz. (TC-MHVS-003-01) \\
+\hline
+\rowcolor{grisTecnico}
+Severidad & Menor \\
+\hline
+Prioridad & Media \\
+\hline
+\rowcolor{grisTecnico}
+Pasos para Reproducir & 
+\raggedright\arraybackslash
+1. Iniciar sesión como Reclutador. \newline
+2. Acceder a perfil sin habilidades en 'DevOps'. \newline
+3. Observar subtítulos generados. \\
+\hline
+Resultado Esperado & Categoría sin habilidades no se muestra en el DOM. \\
+\hline
+\rowcolor{grisTecnico}
+Resultado Actual & \raggedright\arraybackslash Se renderiza el título dejando espacio en blanco debajo. \\
+\hline
+\end{BugReport}
+
+% BUG 006
+\begin{BugReport}
+ID de Defecto & \textbf{BUG-006}: Habilidades Top Skills duplicadas en catálogo general. (TC-MHVS-003-03) \\
+\hline
+\rowcolor{grisTecnico}
+Severidad & Menor \\
+\hline
+Prioridad & Media \\
+\hline
+\rowcolor{grisTecnico}
+Pasos para Reproducir & 
+\raggedright\arraybackslash
+1. Iniciar sesión como Reclutador. \newline
+2. Acceder a perfil con 'Java' como Top Skill. \newline
+3. Bajar hasta categoría 'Lenguajes'. \\
+\hline
+Resultado Esperado & Excluir la etiqueta destacada del listado general. \\
+\hline
+\rowcolor{grisTecnico}
+Resultado Actual & \raggedright\arraybackslash Etiqueta 'Java' renderizada dos veces en pantalla. \\
+\hline
+\end{BugReport}
+
+% BUG 007
+\begin{BugReport}
+ID de Defecto & \textbf{BUG-007}: Habilidades sin categoría no se muestran en 'Otras Tecnologías'. (TC-MHVS-005-04) \\
+\hline
+\rowcolor{grisTecnico}
+Severidad & Mayor \\
+\hline
+Prioridad & Media \\
+\hline
+\rowcolor{grisTecnico}
+Pasos para Reproducir & 
+\raggedright\arraybackslash
+1. Agregar habilidad sin categoría global. \newline
+2. Observar vista pública. \\
+\hline
+Resultado Esperado & Agrupación automática en bloque 'Otras Tecnologías'. \\
+\hline
+\rowcolor{grisTecnico}
+Resultado Actual & \raggedright\arraybackslash Habilidad completamente oculta en vista pública. \\
+\hline
+\end{BugReport}
+
+\clearpage
+% BUG 008
+\begin{BugReport}
+ID de Defecto & \textbf{BUG-008}: Agrupación no se recalcula en tiempo real al agregar/eliminar. (TC-MHVS-005-08) \\
+\hline
+\rowcolor{grisTecnico}
+Severidad & Mayor \\
+\hline
+Prioridad & Media \\
+\hline
+\rowcolor{grisTecnico}
+Pasos para Reproducir & 
+\raggedright\arraybackslash
+1. Agregar nueva habilidad con categoría asignada. \newline
+2. Observar vista pública inmediatamente. \\
+\hline
+Resultado Esperado & Actualización asíncrona en stack categórico. \\
+\hline
+\rowcolor{grisTecnico}
+Resultado Actual & \raggedright\arraybackslash Requiere recarga manual (F5) de la página. \\
+\hline
+\end{BugReport}
+
+% BUG 009
+\begin{BugReport}
+ID de Defecto & \textbf{BUG-009}: Meta etiquetas Open Graph no se generan correctamente. (IDEN-008-09) \\
+\hline
+\rowcolor{grisTecnico}
+Severidad & Crítica \\
+\hline
+Prioridad & Alta \\
+\hline
+\rowcolor{grisTecnico}
+Pasos para Reproducir & 
+\raggedright\arraybackslash
+1. Copiar URL pública. \newline
+2. Compartir en WhatsApp/LinkedIn. \newline
+3. Observar vista previa. \\
+\hline
+Resultado Esperado & Etiquetas dinámicas OG completas (imagen, título). \\
+\hline
+\rowcolor{grisTecnico}
+Resultado Actual & \raggedright\arraybackslash No hay metaetiquetas, datos incompletos. \\
+\hline
+\end{BugReport}
+
+% BUG 010
+\begin{BugReport}
+ID de Defecto & \textbf{BUG-010}: Imágenes no optimizadas causan cargas lentas. (IDEN-008-10) \\
+\hline
+\rowcolor{grisTecnico}
+Severidad & Alta \\
+\hline
+Prioridad & Alta \\
+\hline
+\rowcolor{grisTecnico}
+Pasos para Reproducir & 
+\raggedright\arraybackslash
+1. Subir imagen HQ. \newline
+2. Acceder desde red lenta. \\
+\hline
+Resultado Esperado & Servidas en WebP/Optimizadas. \\
+\hline
+\rowcolor{grisTecnico}
+Resultado Actual & \raggedright\arraybackslash Formato original pesado, retraso visible. \\
+\hline
+\end{BugReport}
+
+\clearpage
+% BUG 011
+\begin{BugReport}
+ID de Defecto & \textbf{BUG-011}: Botón 'Ver Perfil' no abre portafolio en pestaña nueva. (MHVS-006-04) \\
+\hline
+\rowcolor{grisTecnico}
+Severidad & Media \\
+\hline
+Prioridad & Media \\
+\hline
+\rowcolor{grisTecnico}
+Pasos para Reproducir & 
+\raggedright\arraybackslash
+1. Buscar candidato en Dashboard. \newline
+2. Clic en 'Ver Perfil'. \\
+\hline
+Resultado Esperado & Apertura con \comando{target='\_blank'}. \\
+\hline
+\rowcolor{grisTecnico}
+Resultado Actual & \raggedright\arraybackslash Reemplaza la pestaña actual, perdiendo filtros. \\
+\hline
+\end{BugReport}
+
+% BUG 012
+\begin{BugReport}
+ID de Defecto & \textbf{BUG-012}: Full refresh al aplicar filtros laterales. (MHVS-006-07) \\
+\hline
+\rowcolor{grisTecnico}
+Severidad & Alta \\
+\hline
+Prioridad & Alta \\
+\hline
+\rowcolor{grisTecnico}
+Pasos para Reproducir & 
+\raggedright\arraybackslash
+1. Marcar filtro 'Nivel Senior' en sidebar. \newline
+2. Observar comportamiento navegador. \\
+\hline
+Resultado Esperado & Actualización asíncrona de grilla. \\
+\hline
+\rowcolor{grisTecnico}
+Resultado Actual & \raggedright\arraybackslash Recarga completa de página (Full Refresh). \\
+\hline
+\end{BugReport}
+
+% BUG 013
+\begin{BugReport}
+ID de Defecto & \textbf{BUG-013}: Falta modal confirmación al eliminar habilidad. (MHVS-002-01) \\
+\hline
+\rowcolor{grisTecnico}
+Severidad & Crítica \\
+\hline
+Prioridad & Alta \\
+\hline
+\rowcolor{grisTecnico}
+Pasos para Reproducir & 
+\raggedright\arraybackslash
+1. Clic en eliminar habilidad. \\
+\hline
+Resultado Esperado & Modal de validación pre-eliminación. \\
+\hline
+\rowcolor{grisTecnico}
+Resultado Actual & \raggedright\arraybackslash Se elimina directamente omitiendo seguridad. \\
+\hline
+\end{BugReport}
+
+\clearpage
+% BUG 014
+\begin{BugReport}
+ID de Defecto & \textbf{BUG-014}: Pérdida de formulario por error de red. (MHVS-002-10) \\
+\hline
+\rowcolor{grisTecnico}
+Severidad & Crítica \\
+\hline
+Prioridad & Alta \\
+\hline
+\rowcolor{grisTecnico}
+Pasos para Reproducir & 
+\raggedright\arraybackslash
+1. Llenar edición. 2. Cortar internet. 3. Guardar. \\
+\hline
+Resultado Esperado & Formulario se mantiene abierto con datos. \\
+\hline
+\rowcolor{grisTecnico}
+Resultado Actual & \raggedright\arraybackslash Se borran campos o cierra modal. \\
+\hline
+\end{BugReport}
+
+% BUG 015
+\begin{BugReport}
+ID de Defecto & \textbf{BUG-015}: Acceso Admin Tool sin rol válido. (TC-IDEN-007-01) \\
+\hline
+\rowcolor{grisTecnico}
+Severidad & Crítica \\
+\hline
+Prioridad & Alta \\
+\hline
+\rowcolor{grisTecnico}
+Pasos para Reproducir & 
+\raggedright\arraybackslash
+1. Loguearse sin rol Admin. \newline
+2. Forzar URL de moderación. \\
+\hline
+Resultado Esperado & Redirección a acceso denegado (403). \\
+\hline
+\rowcolor{grisTecnico}
+Resultado Actual & \raggedright\arraybackslash Carga panel de moderación sin filtro. \\
+\hline
+\end{BugReport}
+
+% BUG 016
+\begin{BugReport}
+ID de Defecto & \textbf{BUG-016}: Eliminación de cuenta sin doble confirmación. (TC-IDEN-007-02) \\
+\hline
+\rowcolor{grisTecnico}
+Severidad & Crítica \\
+\hline
+Prioridad & Alta \\
+\hline
+\rowcolor{grisTecnico}
+Pasos para Reproducir & 
+\raggedright\arraybackslash
+1. Admin selecciona perfil. \newline
+2. Clic 'Eliminar cuenta'. \newline
+3. Confirma solo 1 vez. \\
+\hline
+Resultado Esperado & Solicitud de segunda validación de seguridad. \\
+\hline
+\rowcolor{grisTecnico}
+Resultado Actual & \raggedright\arraybackslash Cuenta borrada con confirmación simple. \\
+\hline
+\end{BugReport}
+
+\clearpage
+% BUG 017
+\begin{BugReport}
+ID de Defecto & \textbf{BUG-017}: CSV incompleto. (TC-IDEN-007-03) \\
+\hline
+\rowcolor{grisTecnico}
+Severidad & Mayor \\
+\hline
+Prioridad & Media \\
+\hline
+\rowcolor{grisTecnico}
+Pasos para Reproducir & 
+\raggedright\arraybackslash
+1. Admin exporta CSV. \newline
+2. Compara filas con dashboard. \\
+\hline
+Resultado Esperado & Exportación del 100\% de perfiles. \\
+\hline
+\rowcolor{grisTecnico}
+Resultado Actual & \raggedright\arraybackslash CSV omite múltiples registros en exportación. \\
+\hline
+\end{BugReport}
+
+% BUG 018
+\begin{BugReport}
+ID de Defecto & \textbf{BUG-018}: Suspensión no bloquea acceso público de inmediato. (TC-IDEN-007-04) \\
+\hline
+\rowcolor{grisTecnico}
+Severidad & Crítica \\
+\hline
+Prioridad & Alta \\
+\hline
+\rowcolor{grisTecnico}
+Pasos para Reproducir & 
+\raggedright\arraybackslash
+1. Admin suspende perfil. \newline
+2. Acceder URL pública en incógnito. \\
+\hline
+Resultado Esperado & Acceso denegado de forma inmediata. \\
+\hline
+\rowcolor{grisTecnico}
+Resultado Actual & \raggedright\arraybackslash Perfil sigue accesible post-suspensión. \\
+\hline
+\end{BugReport}
+
+% ------------------------------------------
+% 5. INFORME DE RESUMEN
+% ------------------------------------------
+\section{Informe de Resumen de V\&V (SVVR)}
+\label{sec:svvr_sp2}
+
+\subsection{Métricas de Ejecución y Cobertura (Sprint 2)}
+\label{subsec:metricas_sp2}
+En base a los datos extraídos de la auditoría técnica, el comportamiento del sistema ante el universo de pruebas documentado (80 TCs base + pruebas exploratorias) logró identificar y aislar los 18 defectos listados. Es fundamental enfatizar que, gracias a las labores de desarrollo y regresión, el estatus final de validación cierra con un \textbf{100\% de casos en estado PASS} para la versión liberada.
+
+\subsection{Análisis Técnico de la Iteración}
+La plataforma ha demostrado una consolidación arquitectónica sólida en su núcleo de búsqueda y estructuración de competencias. Se validaron con éxito lógicas complejas de backend (asincronía, indexado, sanitización) y la UX asíncrona del panel de Reclutadores. Las incidencias críticas relacionadas a la seguridad y fuga de datos en la herramienta Administrativa (IDEN-007) fueron mitigadas, garantizando las políticas de aislamiento y control de roles.
+
+\clearpage
+\subsection{Dictamen de Liberación}
+\begin{tcolorbox}[colback=white, colframe=bgPass, boxrule=1.2pt, arc=2pt, title={\faCheckCircle\ \textbf{DICTAMEN: SPRINT EXITOSO Y APROBADO PARA PRODUCCIÓN}}, coltitle=bgPass, fonttitle=\sffamily, attach title to upper=\par\vspace{0.2em}]
+\sffamily
+El equipo de Control de Calidad certifica el cumplimiento absoluto de los Criterios de Aceptación y \textit{Definition of Done (DoD)}. Habiendo verificado la resolución del 100\% de los defectos críticos, funcionales y técnicos (Bug-001 a Bug-018) y comprobado la madurez de los flujos del motor de habilidades y seguridad administrativa, el sistema garantiza una alta confiabilidad transaccional. Por lo tanto, la plataforma EthosHub es \textbf{declarada apta para su despliegue hacia entornos productivos}.
+\end{tcolorbox}
+
+% ------------------------------------------
+% 6. CONTROL DE VERSIONES
+% ------------------------------------------
+\section{Control de Versiones y Nomenclatura}
+\label{sec:versioning_sp2}
+
+Este documento y el incremento de software asociado han sido etiquetados bajo el versionamiento \textbf{v1.1.0} siguiendo las directrices de \textit{Semantic Versioning (SemVer)}.
+
+\begin{itemize}[noitemsep]
+    \item \textbf{MAJOR (1):} El sistema conserva la compatibilidad con el motor de acceso fundacional desplegado en la versión 1.0.0.
+    \item \textbf{MINOR (1):} Se actualiza el dígito menor debido a la integración y despliegue exitoso de un nuevo conjunto de funcionalidades (\textit{Features}) retrocompatibles, específicamente el motor de búsqueda asíncrono, la estructuración de la matriz de habilidades 'Top 3' y el panel de administración/moderación (IDEN-007).
+    \item \textbf{PATCH (0):} No se han requerido parches de estabilización (\textit{hotfixes}) de emergencia post-compilación tras el ciclo de QA.
+\end{itemize}
