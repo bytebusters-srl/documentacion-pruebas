@@ -1,0 +1,578 @@
+% ==========================================
+% DEFINICIÓN DE VERSIÓN Y METADATOS (Sprint 3)
+% ==========================================
+\setDocID{QA-V\&V-SPRINT3}
+\setDocEstado{Release v1.2.0}
+
+% ==========================================
+% CAPÍTULO: SPRINT 3
+% ==========================================
+\chapter{Ciclo de Verificación y Validación para el Sprint 3}
+\label{ch:sprint3}
+
+El presente capítulo documenta de manera exhaustiva el tercer ciclo de Verificación y Validación (V\&V) ejecutado para la plataforma EthosHub, correspondiente al Sprint 3. Elaborado bajo los lineamientos y rigor técnico del estándar IEEE 1012-2024, este informe consolida la estrategia de pruebas, la trazabilidad de los requisitos y los resultados de la ejecución técnica. \par
+
+Durante esta iteración, el esfuerzo de Control de Calidad (QA) se concentró en auditar la estabilidad e integridad funcional de la épica del \textit{Catálogo de Proyectos y Gestión de Evidencias (GAN)}. Esto abarca la creación de proyectos con validación de autoría, la integración robusta de archivos multimedia y documentos adjuntos, la aplicación estricta de políticas de control de acceso (Rate Limiting y dominios autorizados), y la consistencia transaccional del catálogo ante fallos de red. A través de la ejecución sistemática de casos de prueba, el reporte documentado de defectos y su posterior remediación, este ciclo certifica la madurez de los módulos implementados y fundamenta el dictamen de calidad para su liberación a producción.
+
+\newpage
+\begin{NotaTecnica}
+El objetivo de este sprint se centra en habilitar a los profesionales para que puedan construir y exhibir un catálogo de proyectos interactivo y respaldado por evidencias reales. Los resultados de este ciclo, sumados a las métricas de rendimiento y resolución de deuda técnica, determinarán la viabilidad del pase a producción para la \textit{Release v1.2.0} (ver, pág. \pageref{sec:svvr_sp3}, sec. \ref{sec:svvr_sp3}).
+\end{NotaTecnica}
+
+% ------------------------------------------
+% 1. PLAN DE VERIFICACIÓN Y VALIDACIÓN
+% ------------------------------------------
+\section{Plan de Pruebas (Test Plan) - Sprint 3}
+\label{sec:plan_pruebas_sp3}
+
+\subsection{Alcance}
+La cobertura del presente ciclo abarca la validación integral del módulo de gestión de portafolios (proyectos y evidencias). Dentro de este alcance se auditan las transacciones de base de datos para la creación y ordenamiento de catálogos, los flujos asíncronos de subida de archivos pesados con validación MIME, los mecanismos de seguridad anti-XSS y CORS, y la lógica de saneamiento de archivos huérfanos en el servidor de almacenamiento. La distribución exacta del esfuerzo se detalla en la Matriz de Trazabilidad (ver, pág. \pageref{sec:rtm_sp3}, sec. \ref{sec:rtm_sp3}).
+
+\subsection{Objetivo}
+Asegurar que la plataforma garantice la integridad absoluta de los datos del portafolio, evitando duplicidades, registros parciales o fugas de datos sensibles en el DOM público. Se busca validar que los reclutadores puedan visualizar los proyectos de forma responsiva y segura.
+
+\subsection{Entorno y Herramientas}
+\begin{itemize}[noitemsep]
+    \item \textbf{Gestión de código:} Git / GitHub.
+    \item \textbf{Backend:} Java 17, Spring Boot 3.4.1 (Manejo Transaccional y Bucket4j).
+    \item \textbf{Frontend:} React + Vite + Tailwind + TypeScript (Axios Interceptors).
+    \item \textbf{Base de Datos:} PostgreSQL 15 con Funciones Nativas y Workers.
+    \item \textbf{Métricas y QA:} DevTools (Network Throttling), Escáner Malware.
+\end{itemize}
+
+\subsection{Criterios de Entrada y Salida}
+El proceso de pruebas se considera finalizado cuando la totalidad de los Casos de Prueba (ver, pág. \pageref{sec:test_cases_sp3}, sec. \ref{sec:test_cases_sp3}) han sido ejecutados. Los defectos funcionales críticos y de alta prioridad que comprometan la integridad de la base de datos o la seguridad del servidor (ver, pág. \pageref{sec:bug_reports_sp3}, sec. \ref{sec:bug_reports_sp3}) deben resolverse obligatoriamente para la liberación. 
+
+% ------------------------------------------
+% 2. MATRIZ DE TRAZABILIDAD (RTM)
+% ------------------------------------------
+\clearpage
+\section{Matriz de Trazabilidad de Requisitos (RTM)}
+\label{sec:rtm_sp3}
+
+A continuación, se mapean las Historias de Usuario gestionadas en el Sprint 3 (60 Story Points totales), enlazando la épica de desarrollo con su estado final de auditoría técnica.
+
+\vspace{0.3cm}
+\noindent
+\fontsize{9}{10.8}\selectfont\sffamily
+\begin{tabularx}{\textwidth}{|l|X|c|c|c|}
+\hline
+\rowcolor{headerTabla}
+\textbf{ID} & \textbf{Historia de Usuario} & \textbf{Est. Esf.} & \textbf{Prioridad} & \textbf{Estado Final} \\
+\hline
+GAN-001 & Creación de Proyecto Base y Validación de Autoría. & 13 & Alta & \estadoPass \\
+\hline
+\rowcolor{grisTecnico}
+GAN-002 & Integración de Evidencia Multimedia y Archivos. & 13 & Alta & \estadoPass \\
+\hline
+GAN-003 & Control de Acceso y Validación de Dominio Estricta. & 8 & Alta & \estadoPass \\
+\hline
+\rowcolor{grisTecnico}
+GAN-004 & Visualización del Catálogo y Navegación Responsiva. & 13 & Alta & \estadoPass \\
+\hline
+GAN-005 & Seguridad y Control en la Subida de Evidencias. & 5 & Alta & \estadoPass \\
+\hline
+\rowcolor{grisTecnico}
+GAN-006 & Verificador de Integridad y Consistencia del Catálogo. & 8 & Alta & \estadoPass \\
+\hline
+\end{tabularx}
+
+% ------------------------------------------
+% 3. CASOS DE PRUEBA
+% ------------------------------------------
+\section{Ejecución de Casos de Prueba}
+\label{sec:test_cases_sp3}
+
+Se diseñaron e integraron un total de 60 Casos de Prueba (TCs). Se detalla a continuación la matriz de ejecución original (estado previo a la remediación de defectos).
+
+\subsection{GAN-001: Creación de Proyecto Base}
+\noindent
+\fontsize{9}{10.8}\selectfont\sffamily
+\begin{tabularx}{\textwidth}{|l|X|c|}
+\hline
+\rowcolor{headerTabla}
+\textbf{ID Caso} & \textbf{Descripción de la Verificación} & \textbf{Estado} \\
+\hline
+TC-GAN-001-01 & Verificar habilitación del botón "Nuevo proyecto" con sesión activa. & \estadoPass \\ \hline
+\rowcolor{grisTecnico}
+TC-GAN-001-02 & Verificar señalización visual de campos obligatorios en formulario. & \estadoPass \\ \hline
+TC-GAN-001-03 & Verificar bloqueo de guardado con el campo de título vacío. & \estadoPass \\ \hline
+\rowcolor{grisTecnico}
+TC-GAN-001-04 & Verificar detección de duplicidad de título en BD del mismo usuario. & \estadoPass \\ \hline
+TC-GAN-001-05 & Verificar sanitización anti-XSS de cadenas en título y descripción. & \estadoPass \\ \hline
+\rowcolor{grisTecnico}
+TC-GAN-001-06 & Verificar ejecución de Rollback en BD ante fallo de red simulado. & \estadoFail \\ \hline
+TC-GAN-001-07 & Verificar descarte de datos temporales al cancelar la creación. & \estadoPass \\ \hline
+\rowcolor{grisTecnico}
+TC-GAN-001-08 & Verificar asignación de ID único y exclusividad visual para el autor. & \estadoPass \\ \hline
+TC-GAN-001-09 & Verificar generación automática de timestamp de creación en metadatos. & \estadoPass \\ \hline
+\rowcolor{grisTecnico}
+TC-GAN-001-10 & Verificar idempotencia procesando solo la primera solicitud de guardado. & \estadoFail \\ \hline
+\end{tabularx}
+
+\subsection{GAN-002: Integración de Evidencia Multimedia y Archivos}
+\noindent
+\fontsize{9}{10.8}\selectfont\sffamily
+\begin{tabularx}{\textwidth}{|l|X|c|}
+\hline
+\rowcolor{headerTabla}
+\textbf{ID Caso} & \textbf{Descripción de la Verificación} & \textbf{Estado} \\
+\hline
+TC-GAN-002-01 & Verificar guardado y embebido exitoso desde dominios seguros. & \estadoPass \\ \hline
+\rowcolor{grisTecnico}
+TC-GAN-002-02 & Verificar bloqueo de URL de dominios no permitidos por seguridad. & \estadoPass \\ \hline
+TC-GAN-002-03 & Verificar procesamiento correcto de archivos locales permitidos. & \estadoPass \\ \hline
+\rowcolor{grisTecnico}
+TC-GAN-002-04 & Verificar rechazo automático al exceder límite de peso en subida. & \estadoPass \\ \hline
+TC-GAN-002-05 & Verificar bloqueo tras escaneo de malware en segundo plano. & \estadoPass \\ \hline
+\rowcolor{grisTecnico}
+TC-GAN-002-06 & Verificar renderizado directo de videos/iframes sin redirección externa. & \estadoPass \\ \hline
+TC-GAN-002-07 & Verificar eliminación de registro en BD y liberación de archivo físico. & \estadoFail \\ \hline
+\rowcolor{grisTecnico}
+TC-GAN-002-08 & Verificar reflejo correcto en BD al reordenar evidencias secuencialmente. & \estadoPass \\ \hline
+TC-GAN-002-09 & Verificar manejo estructurado de UI ("Contenido no disponible") en iframes rotos. & \estadoFail \\ \hline
+\rowcolor{grisTecnico}
+TC-GAN-002-10 & Verificar registro en bitácora de auditoría ante cualquier modificación. & \estadoPass \\ \hline
+\end{tabularx}
+
+\clearpage
+\subsection{GAN-003: Control de Acceso y Validación de Dominio}
+\noindent
+\fontsize{9}{10.8}\selectfont\sffamily
+\begin{tabularx}{\textwidth}{|l|X|c|}
+\hline
+\rowcolor{headerTabla}
+\textbf{ID Caso} & \textbf{Descripción de la Verificación} & \textbf{Estado} \\
+\hline
+TC-GAN-003-01 & Verificar bloqueo de registro con dominios no autorizados (Error 403). & \estadoPass \\ \hline
+\rowcolor{grisTecnico}
+TC-GAN-003-02 & Verificar activación de Rate Limiting tras 5 fallos en 15 min (Error 429). & \estadoPass \\ \hline
+TC-GAN-003-03 & Verificar rechazo de peticiones con tokens inyectados a la blacklist. & \estadoPass \\ \hline
+\rowcolor{grisTecnico}
+TC-GAN-003-04 & Verificar redirección a login por inactividad total de 15 minutos. & \estadoPass \\ \hline
+TC-GAN-003-05 & Verificar etiqueta visual "Protegido" para el dominio maestro gmail.com. & \estadoPass \\ \hline
+\rowcolor{grisTecnico}
+TC-GAN-003-06 & Verificar reconocimiento inmediato de nuevos dominios en PostgreSQL. & \estadoPass \\ \hline
+TC-GAN-003-07 & Verificar propagación de excepciones en authStore ante errores de API. & \estadoFail \\ \hline
+\rowcolor{grisTecnico}
+TC-GAN-003-08 & Verificar retorno correcto (sin TypeMismatch) de funciones VOID en DB. & \estadoFail \\ \hline
+TC-GAN-003-09 & Verificar manejo adecuado de CORS y redirección Axios ante error 401. & \estadoPass \\ \hline
+\rowcolor{grisTecnico}
+TC-GAN-003-10 & Verificar captura de excepción de BD al intentar borrar dominio protegido. & \estadoPass \\ \hline
+\end{tabularx}
+
+\subsection{GAN-004: Visualización del Catálogo y Responsividad}
+\noindent
+\fontsize{9}{10.8}\selectfont\sffamily
+\begin{tabularx}{\textwidth}{|l|X|c|}
+\hline
+\rowcolor{headerTabla}
+\textbf{ID Caso} & \textbf{Descripción de la Verificación} & \textbf{Estado} \\
+\hline
+TC-GAN-004-01 & Verificar visibilidad pública de proyectos sin necesidad de autenticación. & \estadoPass \\ \hline
+\rowcolor{grisTecnico}
+TC-GAN-004-02 & Verificar ocultamiento por defecto de la sidebar en vista de escritorio. & \estadoPass \\ \hline
+TC-GAN-004-03 & Verificar adaptación responsiva funcional de la barra lateral en móvil. & \estadoFail \\ \hline
+\rowcolor{grisTecnico}
+TC-GAN-004-04 & Verificar bloqueo y pantalla 403 al acceder a URL directa de proyecto privado. & \estadoPass \\ \hline
+TC-GAN-004-05 & Verificar estructuración visual limpia de la información técnica del proyecto. & \estadoPass \\ \hline
+\rowcolor{grisTecnico}
+TC-GAN-004-06 & Verificar descarga directa de documento respetando su formato original. & \estadoPass \\ \hline
+TC-GAN-004-07 & Verificar renderizado de Empty State amigable para portafolios sin contenido. & \estadoPass \\ \hline
+\rowcolor{grisTecnico}
+TC-GAN-004-08 & Verificar respeto estricto del orden secuencial configurado por el usuario. & \estadoPass \\ \hline
+TC-GAN-004-09 & Verificar ausencia absoluta de datos personales sensibles inyectados en el DOM. & \estadoFail \\ \hline
+\rowcolor{grisTecnico}
+TC-GAN-004-10 & Verificar registro de visita anónima transparente en bitácora de estadísticas. & \estadoPass \\ \hline
+\end{tabularx}
+
+\clearpage
+\subsection{GAN-005: Seguridad y Control Estricto en Evidencias}
+\noindent
+\fontsize{9}{10.8}\selectfont\sffamily
+\begin{tabularx}{\textwidth}{|l|X|c|}
+\hline
+\rowcolor{headerTabla}
+\textbf{ID Caso} & \textbf{Descripción de la Verificación} & \textbf{Estado} \\
+\hline
+TC-GAN-005-01 & Verificar detección y bloqueo de archivos con extensión falsa (MIME spoofing). & \estadoPass \\ \hline
+\rowcolor{grisTecnico}
+TC-GAN-005-02 & Verificar validación de límite de peso en cliente (client-side) antes de petición. & \estadoFail \\ \hline
+TC-GAN-005-03 & Verificar sanitización de nombres de archivo con caracteres especiales. & \estadoPass \\ \hline
+\rowcolor{grisTecnico}
+TC-GAN-005-04 & Verificar cancelación e indicador visual ante detección de archivos maliciosos. & \estadoPass \\ \hline
+TC-GAN-005-05 & Verificar deshabilitación del Dropzone al alcanzar cuota de almacenamiento. & \estadoPass \\ \hline
+\rowcolor{grisTecnico}
+TC-GAN-005-06 & Verificar eliminación en DOM solo tras confirmar código HTTP 200 de éxito. & \estadoPass \\ \hline
+TC-GAN-005-07 & Verificar interrupción y manejo visual (sin freeze) ante caída de red. & \estadoFail \\ \hline
+\rowcolor{grisTecnico}
+TC-GAN-005-08 & Verificar forzado de descarga (attachment) y prevención de apertura en pestaña. & \estadoPass \\ \hline
+TC-GAN-005-09 & Verificar renderizado de progreso concurrente al arrastrar múltiples archivos. & \estadoPass \\ \hline
+\rowcolor{grisTecnico}
+TC-GAN-005-10 & Verificar cancelación de Axios y redirección al expirar JWT durante subida. & \estadoPass \\ \hline
+\end{tabularx}
+
+\subsection{GAN-006: Verificador de Integridad y Consistencia}
+\noindent
+\fontsize{9}{10.8}\selectfont\sffamily
+\begin{tabularx}{\textwidth}{|l|X|c|}
+\hline
+\rowcolor{headerTabla}
+\textbf{ID Caso} & \textbf{Descripción de la Verificación} & \textbf{Estado} \\
+\hline
+TC-GAN-006-01 & Verificar que worker asíncrono elimina archivos físicos huérfanos. & \estadoFail \\ \hline
+\rowcolor{grisTecnico}
+TC-GAN-006-02 & Verificar que sistema marca multimedia sin proyecto como registro huérfano. & \estadoPass \\ \hline
+TC-GAN-006-03 & Verificar actualización de secuencia sin dejar huecos al eliminar intermedios. & \estadoPass \\ \hline
+\rowcolor{grisTecnico}
+TC-GAN-006-04 & Verificar que el catálogo prohíba asignar posiciones duplicadas al ordenar. & \estadoFail \\ \hline
+TC-GAN-006-05 & Verificar orden correcto en vista pública tras ejecución del verificador. & \estadoPass \\ \hline
+\rowcolor{grisTecnico}
+TC-GAN-006-06 & Verificar uso de Optional Chaining para prevenir crasheo por datos nulos. & \estadoPass \\ \hline
+TC-GAN-006-07 & Verificar que no se dupliquen evidencias tras concurrencia de catálogos. & \estadoPass \\ \hline
+\rowcolor{grisTecnico}
+TC-GAN-006-08 & Verificar robustez de UI al recibir información técnica nula/vacía. & \estadoPass \\ \hline
+TC-GAN-006-09 & Verificar prevención estricta de posiciones clonadas tras Drag\&Drop continuo. & \estadoFail \\ \hline
+\rowcolor{grisTecnico}
+TC-GAN-006-10 & Verificar recálculo automático de secuencia al inyectar posiciones forzadas. & \estadoPass \\ \hline
+\end{tabularx}
+
+% ------------------------------------------
+% 4. REGISTRO DE DEFECTOS
+% ------------------------------------------
+\clearpage
+\section{Registros de Defectos (Bug Reports)}
+\label{sec:bug_reports_sp3}
+
+\begin{AlertaDefecto}
+Durante la auditoría del presente Sprint se materializaron \textbf{13 defectos críticos y mayores} (reflejados como fallos en los TCs de la Sección \ref{sec:test_cases_sp3}). A continuación se documentan las incidencias transaccionales y de red que comprometieron inicialmente el entorno de pruebas.
+\end{AlertaDefecto}
+
+% BUG 001
+\begin{BugReport}
+ID de Defecto & \textbf{BUG-001}: El sistema no revierte cambios parciales ante fallo de red (Rollback). (TC-GAN-001-06) \\
+\hline
+\rowcolor{grisTecnico}
+Severidad & Alta \\
+\hline
+Prioridad & Alta \\
+\hline
+\rowcolor{grisTecnico}
+Pasos para Reproducir & 
+\raggedright\arraybackslash
+1. Completar formulario de proyecto en Frontend. \newline
+2. Simular caída de red en Throttling (DevTools). \newline
+3. Enviar solicitud. \newline
+4. Restaurar conexión y consultar base de datos. \\
+\hline
+Resultado Esperado & El sistema ejecuta \comando{Rollback} transaccional y no deja registros incompletos en la BD. \\
+\hline
+\rowcolor{grisTecnico}
+Resultado Actual & \raggedright\arraybackslash El sistema falla silenciosamente, persistiendo un registro parcial (corrupto) en PostgreSQL. \\
+\hline
+\end{BugReport}
+
+% BUG 002
+\begin{BugReport}
+ID de Defecto & \textbf{BUG-002}: El sistema procesa múltiples solicitudes por clics rápidos (Falta Idempotencia). (TC-GAN-001-10) \\
+\hline
+\rowcolor{grisTecnico}
+Severidad & Alta \\
+\hline
+Prioridad & Alta \\
+\hline
+\rowcolor{grisTecnico}
+Pasos para Reproducir & 
+\raggedright\arraybackslash
+1. Completar campos del formulario de proyecto. \newline
+2. Hacer clic rápido en "Guardar" 5 veces seguidas. \newline
+3. Revisar el catálogo del usuario. \\
+\hline
+Resultado Esperado & Botón se deshabilita de inmediato, enviando 1 única solicitud (idempotencia). \\
+\hline
+\rowcolor{grisTecnico}
+Resultado Actual & \raggedright\arraybackslash El backend procesa las 5 peticiones simultáneas, generando 5 proyectos duplicados idénticos. \\
+\hline
+\end{BugReport}
+
+% BUG 003
+\newpage
+\begin{BugReport}
+ID de Defecto & \textbf{BUG-003}: Archivos eliminados generan carga huérfana en servidor físico. (TC-GAN-002-07) \\
+\hline
+\rowcolor{grisTecnico}
+Severidad & Alta \\
+\hline
+Prioridad & Alta \\
+\hline
+\rowcolor{grisTecnico}
+Pasos para Reproducir & 
+\raggedright\arraybackslash
+1. Subir evidencia multimedia pesada. \newline
+2. Eliminar la evidencia a través de la UI. \newline
+3. Validar volumen de almacenamiento físico del server. \\
+\hline
+Resultado Esperado & Eliminación íntegra de BD y del Storage S3/Local. \\
+\hline
+\rowcolor{grisTecnico}
+Resultado Actual & \raggedright\arraybackslash Se borra el registro SQL, pero el archivo físico permanece intacto, saturando el servidor. \\
+\hline
+\end{BugReport}
+
+% BUG 004
+\begin{BugReport}
+ID de Defecto & \textbf{BUG-004}: Iframe de contenido roto colapsa la estructura visual del DOM. (TC-GAN-002-09) \\
+\hline
+\rowcolor{grisTecnico}
+Severidad & Media \\
+\hline
+Prioridad & Media \\
+\hline
+\rowcolor{grisTecnico}
+Pasos para Reproducir & 
+\raggedright\arraybackslash
+1. Acceder a perfil con iframe embebido caído (ej. Figma). \newline
+2. Esperar fallo de carga por timeout. \\
+\hline
+Resultado Esperado & Contenedor gris de respaldo con dimensiones conservadas ("Contenido no disponible"). \\
+\hline
+\rowcolor{grisTecnico}
+Resultado Actual & \raggedright\arraybackslash Iframe colapsa a 0px de alto, desplazando y encimando el resto del catálogo inferior. \\
+\hline
+\end{BugReport}
+
+% BUG 005
+\begin{BugReport}
+ID de Defecto & \textbf{BUG-005}: Spinner infinito en AuthStore por no propagar error 403/429. (TC-GAN-003-07) \\
+\hline
+\rowcolor{grisTecnico}
+Severidad & Crítica \\
+\hline
+Prioridad & Alta \\
+\hline
+\rowcolor{grisTecnico}
+Pasos para Reproducir & 
+\raggedright\arraybackslash
+1. Iniciar sesión con correo de dominio no autorizado. \newline
+2. Observar estado de carga. \\
+\hline
+Resultado Esperado & Manejo de catch, desactivación del spinner y visualización de toast de error. \\
+\hline
+\rowcolor{grisTecnico}
+Resultado Actual & \raggedright\arraybackslash AuthStore consume el error pero no lo relanza (\comando{throw}), congelando el UI permanentemente. \\
+\hline
+\end{BugReport}
+
+% BUG 006
+\newpage
+\begin{BugReport}
+ID de Defecto & \textbf{BUG-006}: Error TypeMismatch en backend por funciones PostgreSQL VOID. (TC-GAN-003-08) \\
+\hline
+\rowcolor{grisTecnico}
+Severidad & Alta \\
+\hline
+Prioridad & Media \\
+\hline
+\rowcolor{grisTecnico}
+Pasos para Reproducir & 
+\raggedright\arraybackslash
+1. Registrar un dominio nuevo desde panel de Admin. \newline
+2. Validar respuesta HTTP y estado de BD. \\
+\hline
+Resultado Esperado & Respuesta HTTP 200 al ejecutar la función exitosamente. \\
+\hline
+\rowcolor{grisTecnico}
+Resultado Actual & \raggedright\arraybackslash Driver JDBC no sabe mapear el retorno nulo de PostgreSQL, arrojando \comando{TypeMismatchDataAccessException} (Error 500) aunque se guarda el dato. \\
+\hline
+\end{BugReport}
+
+% BUG 007
+\begin{BugReport}
+ID de Defecto & \textbf{BUG-007}: Barra de navegación lateral inutilizable en dispositivos móviles. (TC-GAN-004-03) \\
+\hline
+\rowcolor{grisTecnico}
+Severidad & Media \\
+\hline
+Prioridad & Alta \\
+\hline
+\rowcolor{grisTecnico}
+Pasos para Reproducir & 
+\raggedright\arraybackslash
+1. Cargar catálogo público en smartphone. \newline
+2. Intentar desplegar el menú para cambiar de sección. \\
+\hline
+Resultado Esperado & Adaptación mediante menú hamburguesa táctil. \\
+\hline
+\rowcolor{grisTecnico}
+Resultado Actual & \raggedright\arraybackslash Reglas CSS de desktop ocultan la barra completamente, sin ofrecer alternativa táctil al usuario. \\
+\hline
+\end{BugReport}
+
+% BUG 008
+\begin{BugReport}
+ID de Defecto & \textbf{BUG-008}: Fuga de datos sensibles en el código fuente (DOM). (TC-GAN-004-09) \\
+\hline
+\rowcolor{grisTecnico}
+Severidad & Alta \\
+\hline
+Prioridad & Alta \\
+\hline
+\rowcolor{grisTecnico}
+Pasos para Reproducir & 
+\raggedright\arraybackslash
+1. Acceder a perfil público sin sesión. \newline
+2. Inspeccionar Elementos del DOM en DevTools. \\
+\hline
+Resultado Esperado & Los datos marcados como privados no deben inyectarse en el frontend bajo ningún motivo. \\
+\hline
+\rowcolor{grisTecnico}
+Resultado Actual & \raggedright\arraybackslash Email y teléfono ocultos solo vía CSS (\comando{display: none}), exponiéndolos a scrapers. \\
+\hline
+\end{BugReport}
+
+% BUG 009
+\newpage
+\begin{BugReport}
+ID de Defecto & \textbf{BUG-009}: Falta validación Client-Side para peso máximo de archivos. (TC-GAN-005-02) \\
+\hline
+\rowcolor{grisTecnico}
+Severidad & Media \\
+\hline
+Prioridad & Alta \\
+\hline
+\rowcolor{grisTecnico}
+Pasos para Reproducir & 
+\raggedright\arraybackslash
+1. Seleccionar un archivo masivo (>100MB) para evidencia. \newline
+2. Observar comportamiento pre-solicitud HTTP. \\
+\hline
+Resultado Esperado & Validación JS instantánea denegando el archivo por \comando{file.size}. \\
+\hline
+\rowcolor{grisTecnico}
+Resultado Actual & \raggedright\arraybackslash El frontend sube la carga completa a la red, congelando la app y colapsando el servidor Tomcat. \\
+\hline
+\end{BugReport}
+
+% BUG 010
+\begin{BugReport}
+ID de Defecto & \textbf{BUG-010}: Barra de progreso congelada indefinidamente ante fallos de red. (TC-GAN-005-07) \\
+\hline
+\rowcolor{grisTecnico}
+Severidad & Alta \\
+\hline
+Prioridad & Media \\
+\hline
+\rowcolor{grisTecnico}
+Pasos para Reproducir & 
+\raggedright\arraybackslash
+1. Iniciar carga de archivo grande. \newline
+2. Apagar WiFi a la mitad del proceso. \\
+\hline
+Resultado Esperado & Interceptor detecta \comando{ERR\_NETWORK}, cancela barra y habilita botón de reintento. \\
+\hline
+\rowcolor{grisTecnico}
+Resultado Actual & \raggedright\arraybackslash La barra se atasca en el último porcentaje reportado, obligando al usuario a refrescar la página. \\
+\hline
+\end{BugReport}
+
+% BUG 011
+\begin{BugReport}
+ID de Defecto & \textbf{BUG-011}: Worker asíncrono no depura archivos huérfanos físicos. (TC-GAN-006-01) \\
+\hline
+\rowcolor{grisTecnico}
+Severidad & Alta \\
+\hline
+Prioridad & Alta \\
+\hline
+\rowcolor{grisTecnico}
+Pasos para Reproducir & 
+\raggedright\arraybackslash
+1. Eliminar múltiples proyectos pesados de la plataforma. \newline
+2. Ejecutar worker asíncrono de mantenimiento. \\
+\hline
+Resultado Esperado & Purgado total de referencias sin enlace activo en BD. \\
+\hline
+\rowcolor{grisTecnico}
+Resultado Actual & \raggedright\arraybackslash La lógica solo marca huérfanos a nivel relacional, pero el I/O del disco duro no borra el material. \\
+\hline
+\end{BugReport}
+
+% BUG 012
+\newpage
+\begin{BugReport}
+ID de Defecto & \textbf{BUG-012}: Sistema guarda posiciones duplicadas al reordenar evidencias. (TC-GAN-006-04) \\
+\hline
+\rowcolor{grisTecnico}
+Severidad & Alta \\
+\hline
+Prioridad & Alta \\
+\hline
+\rowcolor{grisTecnico}
+Pasos para Reproducir & 
+\raggedright\arraybackslash
+1. Reordenar dos evidencias a gran velocidad usando Drag \& Drop. \newline
+2. Guardar cambios. \\
+\hline
+Resultado Esperado & Validación de integridad que fuerce orden secuencial estricto ($1, 2, 3...$). \\
+\hline
+\rowcolor{grisTecnico}
+Resultado Actual & \raggedright\arraybackslash Mutación asíncrona falla y dos evidencias quedan registradas con la misma posición ($1, 2, 2, 4$). \\
+\hline
+\end{BugReport}
+
+% BUG 013
+\begin{BugReport}
+ID de Defecto & \textbf{BUG-013}: Falta de validación final permite persistir inconsistencias múltiples. (TC-GAN-006-09) \\
+\hline
+\rowcolor{grisTecnico}
+Severidad & Alta \\
+\hline
+Prioridad & Alta \\
+\hline
+\rowcolor{grisTecnico}
+Pasos para Reproducir & 
+\raggedright\arraybackslash
+1. Reordenar de forma arbitraria y caótica 10 evidencias repetidamente. \newline
+2. Enviar actualización al servidor. \\
+\hline
+Resultado Esperado & Garantía de reindexado automático limpio. \\
+\hline
+\rowcolor{grisTecnico}
+Resultado Actual & \raggedright\arraybackslash Persistencia de fallos de indexado, generando superposición de elementos en la vista pública. \\
+\hline
+\end{BugReport}
+
+% ------------------------------------------
+% 5. INFORME DE RESUMEN
+% ------------------------------------------
+\clearpage
+\section{Informe de Resumen de V\&V (SVVR)}
+\label{sec:svvr_sp3}
+
+\subsection{Métricas de Ejecución y Resiliencia del Equipo}
+De acuerdo con las métricas extraídas del cierre del Sprint 3, el comportamiento de la ejecución arroja un éxito rotundo a nivel de producto, completando el 100\% del alcance estipulado (60 Story Points). Los análisis del Gráfico Burn-down evidenciaron una meseta operativa entre el 1 y el 5 de mayo. Este estancamiento crítico fue diagnosticado como un problema de \textit{silos de información} y \textit{comunicación reactiva} (calificada en 8/10 en la bitácora) generados por alineaciones deficientes en el Peer Programming.
+
+Frente al riesgo de inestabilidad, el núcleo activo demostró un nivel de autoorganización impecable (10/10), aplicando un \textit{swarming de emergencia} en las últimas 48 horas. Esto permitió auditar código complejo de bases de datos y reasignar roles de desarrollo y QA de forma transversal.
+
+\subsection{Estado Final de la Deuda Técnica}
+Durante la ejecución se documentaron 13 defectos de severidad Alta/Crítica asociados a fallos de concurrencia y fugas de memoria (archivos huérfanos). Para el cierre de este informe, el equipo de desarrollo \textbf{logró resolver el 100\% de los bugs detectados}. A nivel técnico, se reforzó la arquitectura mediante la implementación de \textit{Optional Chaining} en React para prevenir caídas de app, transacciones SQL con Rollback en endpoints críticos y validaciones robustas locales vía Axios y JS nativo.
+
+\subsection{Dictamen de Liberación}
+\begin{tcolorbox}[colback=white, colframe=bgPass, boxrule=1.2pt, arc=2pt, title={\faCheckCircle\ \textbf{DICTAMEN: SPRINT EXITOSO Y CATÁLOGO APROBADO}}, coltitle=bgPass, fonttitle=\sffamily, attach title to upper=\par\vspace{0.2em}]
+\sffamily
+Habiendo validado la estabilidad de los flujos de creación, control de accesos estrictos, subida de archivos seguros y depuración de concurrencias en el catálogo, el equipo de Control de Calidad certifica el cumplimiento de los Criterios de Aceptación. La Tasa de Éxito funcional cierra al 100\% de casos saneados, mitigando las vulnerabilidades (XSS, CORS) detectadas inicialmente. Por consiguiente, el incremento del Sprint 3 \textbf{es declarado apto para su liberación y paso a Staging/Producción}.
+\end{tcolorbox}
+
+% ------------------------------------------
+% 6. CONTROL DE VERSIONES
+% ------------------------------------------
+\section{Control de Versiones y Nomenclatura}
+\label{sec:versioning_sp3}
+
+Este documento y el incremento de software asociado han sido etiquetados bajo el versionamiento \textbf{v1.2.0} siguiendo las directrices de \textit{Semantic Versioning (SemVer)}.
+
+\begin{itemize}[noitemsep]
+    \item \textbf{MAJOR (1):} El sistema consolida y expande la base productiva de usuarios de la versión 1.0.0 y el motor asíncrono de la 1.1.0, manteniendo retrocompatibilidad total de arquitectura (Spring Boot + PostgreSQL).
+    \item \textbf{MINOR (2):} El salto en esta variable indica la liberación de un nuevo módulo principal y masivo (Catálogo de Proyectos / Portafolio), que provee una nueva dimensión funcional al perfil público.
+    \item \textbf{PATCH (0):} La remediación técnica de bugs fue absorbida e integrada durante el propio ciclo de validación del Sprint 3, evitando parches en caliente (hotfixes).
+\end{itemize}
