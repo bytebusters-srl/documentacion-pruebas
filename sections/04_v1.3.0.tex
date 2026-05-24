@@ -1,0 +1,730 @@
+% ==========================================
+% DEFINICIÓN DE VERSIÓN Y METADATOS (Sprint 4)
+% ==========================================
+\setDocID{QA-V\&V-SPRINT4}
+\setDocEstado{Release v1.3.0}
+
+% ==========================================
+% CAPÍTULO: SPRINT 4
+% ==========================================
+\chapter{Ciclo de Verificación y Validación para el Sprint 4}
+\label{ch:sprint4}
+
+El presente capítulo documenta de manera exhaustiva el cuarto ciclo de Verificación y Validación (V\&V) ejecutado para la plataforma EthosHub, correspondiente al Sprint 4. Elaborado bajo los lineamientos y rigor técnico del estándar IEEE 1012-2024, este informe consolida la estrategia de pruebas, la trazabilidad de los requisitos y los resultados de la ejecución técnica de la fase de estabilización integral. \par
+
+Durante esta iteración, el esfuerzo de Control de Calidad (QA) se enfocó en garantizar la integridad transaccional de dos frentes estructurales: el \textit{Puente Inteligente} y el \textit{Megáfono Digital}. El perímetro de pruebas abarcó desde la integración asíncrona multimedia (GAN-002), verificaciones rigurosas de consistencia del catálogo (GAN-006), despliegue de Dashboards Profesionales y Administrativos (GAN-007, IDAR-003, IDAR-004, IDAR-005), hasta la gestión avanzada de formación y experiencia (CONX-004, CONX-009) y el motor de Búsqueda de Talento (CONX-005). Mediante la ejecución de 86 casos de prueba y la mitigación de 18 defectos críticos, este ciclo certifica la madurez funcional requerida para la transición a entornos productivos.
+
+\newpage
+\begin{NotaTecnica}
+El objetivo de este sprint se centra en dotar a la plataforma de su capacidad de automatización de portafolios (integración de repositorios GitHub, historiales de commits, perfiles enriquecidos) y en la habilitación del panel de monitoreo y supervisión global para administradores. El cumplimiento de este Sprint Goal (120 Story Points) define el paso a la \textit{Release v1.3.0} (ver, pág. \pageref{sec:svvr_sp4}, sec. \ref{sec:svvr_sp4}).
+\end{NotaTecnica}
+
+% ------------------------------------------
+% 1. PLAN DE VERIFICACIÓN Y VALIDACIÓN
+% ------------------------------------------
+\section{Plan de Pruebas (Test Plan) - Sprint 4}
+\label{sec:plan_pruebas_sp4}
+
+\subsection{Alcance}
+La cobertura del presente ciclo audita la robustez del lado del cliente y servidor en la orquestación de datos de perfil. El alcance incluye: validación de formatos multimedia y manejo de \textit{iframes}, gestión de estados en Next.js/React ante excepciones de red, consistencia de índices al reordenar elementos en base de datos PostgreSQL, renderizado asíncrono de métricas en los dashboards y evaluación del comportamiento \textit{responsive} bajo resoluciones extremas (Ultrawide/4K). Los detalles se vinculan en la Matriz de Trazabilidad (ver, pág. \pageref{sec:rtm_sp4}, sec. \ref{sec:rtm_sp4}).
+
+\subsection{Objetivo}
+Verificar que la orquestación de datos provenientes de la base de datos y APIs externas no corrompa el DOM ante respuestas atípicas (ej. \textit{payloads} vacíos), garantizando que las interfaces de descubrimiento de talento y los paneles administrativos operen bajo tolerancias estrictas de fallos y métricas de SEO/Open Graph impecables.
+
+\subsection{Entorno y Herramientas}
+\begin{itemize}[noitemsep]
+    \item \textbf{Gestión de código:} Git / GitHub (Control de Ramas y \textit{Peer Programming}).
+    \item \textbf{Backend:} Java 17, Spring Boot 3.4.1 (JDBC, Consultas Nativas y Triggers).
+    \item \textbf{Frontend:} Next.js / React + Vite + Tailwind + Framer Motion.
+    \item \textbf{Base de Datos:} Neon.tech (PostgreSQL v14 con Vistas Materializadas).
+    \item \textbf{Métricas y QA:} Axios Interceptors, DevTools (Network Throttling).
+\end{itemize}
+
+\subsection{Criterios de Entrada y Salida}
+El proceso se da por concluido exitosamente tras la ejecución del 100\% del universo de Casos de Prueba (ver, pág. \pageref{sec:test_cases_sp4}, sec. \ref{sec:test_cases_sp4}) y la remediación en caliente (durante el Sprint) de todos los \textit{Bugs} Críticos y Mayores (ver, pág. \pageref{sec:bug_reports_sp4}, sec. \ref{sec:bug_reports_sp4}) que pongan en riesgo la experiencia de usuario (UX) o la integridad relacional de PostgreSQL.
+
+% ------------------------------------------
+% 2. MATRIZ DE TRAZABILIDAD (RTM)
+% ------------------------------------------
+\section{Matriz de Trazabilidad de Requisitos (RTM)}
+\label{sec:rtm_sp4}
+
+La siguiente matriz mapea las épicas consolidadas del Sprint 4. Representa la integración de las 16 Historias de Usuario (120 Story Points totales) con los módulos funcionales sometidos al rigor del equipo de QA.
+
+\clearpage
+\vspace{0.3cm}
+\noindent
+\fontsize{9}{10.8}\selectfont\sffamily
+\begin{tabularx}{\textwidth}{|l|X|c|c|c|}
+\hline
+\rowcolor{headerTabla}
+\textbf{ID Módulo} & \textbf{Épica / Funcionalidad Auditada} & \textbf{Est. Esf.} & \textbf{Prioridad} & \textbf{Estado Final} \\
+\hline
+GAN-002 & Integración de Evidencia Multimedia y Archivos. & 13 & Alta & \estadoPass \\
+\hline
+\rowcolor{grisTecnico}
+GAN-006 & Verificador de Integridad y Consistencia del Catálogo. & 8 & Alta & \estadoPass \\
+\hline
+GAN-007 & Dashboard Profesional (Métricas e Insights Reales). & 13 & Alta & \estadoPass \\
+\hline
+\rowcolor{grisTecnico}
+IDAR-003 & Visualizar Dashboard Administrativo Global. & 13 & Alta & \estadoPass \\
+\hline
+IDAR-004 & Consultar Actividad Reciente y Metadatos Técnicos. & 8 & Alta & \estadoPass \\
+\hline
+\rowcolor{grisTecnico}
+IDAR-005 & Métricas Históricas de Usuarios con Filtros Temporales. & 5 & Alta & \estadoPass \\
+\hline
+CONX-004 & Gestión de Formación Académica (Renderizado/Adjuntos). & 13 & Alta & \estadoPass \\
+\hline
+\rowcolor{grisTecnico}
+CONX-009 & Gestión de Experiencia Laboral y Dominios DB. & 8 & Alta & \estadoPass \\
+\hline
+CONX-005 & Búsqueda y Descubrimiento de Talento (Filtros y Paginación). & 13 & Alta & \estadoPass \\
+\hline
+\end{tabularx}
+
+% ------------------------------------------
+% 3. CASOS DE PRUEBA
+% ------------------------------------------
+\section{Ejecución de Casos de Prueba}
+\label{sec:test_cases_sp4}
+
+Durante este ciclo se diseñaron y ejecutaron 86 Casos de Prueba (TCs). Se detalla a continuación el estado original de la validación, donde se evidencian las vulnerabilidades que posteriormente dieron paso a la refactorización (ver Sección \ref{sec:bug_reports_sp4}).
+
+\subsection{GAN-002: Integración de Evidencia Multimedia y Archivos}
+\noindent
+\fontsize{9}{10.8}\selectfont\sffamily
+\begin{tabularx}{\textwidth}{|l|X|c|}
+\hline
+\rowcolor{headerTabla}
+\textbf{ID Caso} & \textbf{Descripción de la Verificación} & \textbf{Estado} \\
+\hline
+TC-GAN-002-01 & Verificar guardado y embebido correcto de URLs seguras (YouTube, Vimeo). & \estadoPass \\ \hline
+\rowcolor{grisTecnico}
+TC-GAN-002-02 & Verificar bloqueo de URLs de dominios dudosos por políticas de seguridad. & \estadoPass \\ \hline
+TC-GAN-002-03 & Verificar procesamiento y previsualización de documentos (.doc, .docx). & \estadoFail \\ \hline
+\rowcolor{grisTecnico}
+TC-GAN-002-04 & Verificar procesamiento y renderizado visual de imágenes permitidas (PNG, JPG). & \estadoFail \\ \hline
+TC-GAN-002-05 & Verificar rechazo inmediato al exceder el límite máximo de peso de archivos. & \estadoPass \\ \hline
+\rowcolor{grisTecnico}
+TC-GAN-002-06 & Verificar bloqueo ante detección automática de malware en segundo plano. & \estadoPass \\ \hline
+TC-GAN-002-07 & Verificar que videos/prototipos no fuercen redirecciones externas (Pestañas). & \estadoPass \\ \hline
+\rowcolor{grisTecnico}
+TC-GAN-002-08 & Verificar eliminación íntegra en Base de Datos y liberación física en el servidor. & \estadoPass \\ \hline
+TC-GAN-002-09 & Verificar conservación del ordenamiento secuencial en panel y vista pública. & \estadoPass \\ \hline
+\rowcolor{grisTecnico}
+TC-GAN-002-10 & Verificar generación de logs de auditoría ante carga o eliminación de adjuntos. & \estadoPass \\ \hline
+\end{tabularx}
+
+\subsection{GAN-006: Verificador de Integridad y Consistencia del Catálogo}
+\noindent
+\fontsize{9}{10.8}\selectfont\sffamily
+\begin{tabularx}{\textwidth}{|l|X|c|}
+\hline
+\rowcolor{headerTabla}
+\textbf{ID Caso} & \textbf{Descripción de la Verificación} & \textbf{Estado} \\
+\hline
+TC-GAN-006-01 & Verificar que no se rendericen elementos duplicados en la vista de evidencias. & \estadoPass \\ \hline
+\rowcolor{grisTecnico}
+TC-GAN-006-02 & Verificar conservación del orden tras \textit{Drag \& Drop} y guardado. & \estadoPass \\ \hline
+TC-GAN-006-03 & Verificar que posiciones se mantengan inmutables tras refrescar (F5). & \estadoPass \\ \hline
+\rowcolor{grisTecnico}
+TC-GAN-006-04 & Verificar eliminación de saltos o huecos en la secuencia tras eliminar ítems. & \estadoPass \\ \hline
+TC-GAN-006-05 & Verificar tolerancia a nulos en campos opcionales sin romper la UI. & \estadoPass \\ \hline
+\rowcolor{grisTecnico}
+TC-GAN-006-06 & Verificar advertencia controlada ante respuesta malformada del backend. & \estadoFail \\ \hline
+TC-GAN-006-07 & Verificar prevención estricta de posiciones duplicadas al reordenar. & \estadoFail \\ \hline
+\rowcolor{grisTecnico}
+TC-GAN-006-08 & Verificar manejo claro del estado vacío ante error 500 del servidor. & \estadoFail \\ \hline
+TC-GAN-006-09 & Verificar aplicación de i18n (idioma) en botones y alertas de la vista. & \estadoPass \\ \hline
+\rowcolor{grisTecnico}
+TC-GAN-006-10 & Verificar advertencia técnica si se detectan inconsistencias relacionales. & \estadoFail \\ \hline
+\end{tabularx}
+
+\clearpage
+\subsection{GAN-007: Dashboard Profesional con Datos Reales}
+\noindent
+\fontsize{9}{10.8}\selectfont\sffamily
+\begin{tabularx}{\textwidth}{|l|X|c|}
+\hline
+\rowcolor{headerTabla}
+\textbf{ID Caso} & \textbf{Descripción de la Verificación} & \textbf{Estado} \\
+\hline
+TC-GAN-007-01 & Verificar retorno de payload JSON íntegro desde endpoint \texttt{/api/v1/dashboard/}. & \estadoPass \\ \hline
+\rowcolor{grisTecnico}
+TC-GAN-007-02 & Verificar sincronía de contadores (Skills, Proyectos) con registros de PostgreSQL. & \estadoPass \\ \hline
+TC-GAN-007-03 & Verificar renderizado de Hard Skills (Nivel + Icono) en panel derecho. & \estadoPass \\ \hline
+\rowcolor{grisTecnico}
+TC-GAN-007-04 & Verificar renderizado de Soft Skills mediante estructura de badges visuales. & \estadoPass \\ \hline
+TC-GAN-007-05 & Verificar listado de Proyectos Destacados (isFeatured=true) con su metadatos. & \estadoPass \\ \hline
+\rowcolor{grisTecnico}
+TC-GAN-007-06 & Verificar ocultamiento limpio del bloque Destacados si el array está vacío. & \estadoPass \\ \hline
+TC-GAN-007-07 & Verificar presencia de Skeleton de carga mitigando la pantalla en blanco (FOUC). & \estadoPass \\ \hline
+\rowcolor{grisTecnico}
+TC-GAN-007-08 & Verificar prevención de ruptura de UI (Crashes) si la llamada falla o devuelve \texttt{\{\}}. & \estadoFail \\ \hline
+TC-GAN-007-09 & Verificar ruteo correcto desde enlaces de acceso rápido en el dashboard. & \estadoPass \\ \hline
+\rowcolor{grisTecnico}
+TC-GAN-007-10 & Verificar recarga en tiempo real al retornar al Dashboard sin necesidad de F5. & \estadoFail \\ \hline
+\end{tabularx}
+
+\subsection{IDAR-003: Visualizar Dashboard Administrativo Global}
+\noindent
+\fontsize{9}{10.8}\selectfont\sffamily
+\begin{tabularx}{\textwidth}{|l|X|c|}
+\hline
+\rowcolor{headerTabla}
+\textbf{ID Caso} & \textbf{Descripción de la Verificación} & \textbf{Estado} \\
+\hline
+TC-IDAR-003-01 & Verificar carga exitosa de tarjetas KPI superiores para rol Administrador. & \estadoPass \\ \hline
+\rowcolor{grisTecnico}
+TC-IDAR-003-02 & Verificar redirección/Error 403 para usuarios estándar o reclutadores. & \estadoPass \\ \hline
+TC-IDAR-003-03 & Verificar tolerancia ante expiración del token JWT (Sin colapso asíncrono). & \estadoFail \\ \hline
+\rowcolor{grisTecnico}
+TC-IDAR-003-04 & Verificar que "Total Usuarios" sea idéntico al recuento real en BD. & \estadoPass \\ \hline
+TC-IDAR-003-05 & Verificar que "Total Portafolios" sume la cantidad exacta de catálogos. & \estadoPass \\ \hline
+\rowcolor{grisTecnico}
+TC-IDAR-003-06 & Verificar filtro de "Portafolios Publicados" basado en el flag de visibilidad. & \estadoPass \\ \hline
+TC-IDAR-003-07 & Verificar acción del botón "Actualizar" forzando refetch sin recarga de DOM. & \estadoPass \\ \hline
+\rowcolor{grisTecnico}
+TC-IDAR-003-08 & Verificar banner preventivo rojo ante interrupción de conexión BD (Error 500). & \estadoPass \\ \hline
+TC-IDAR-003-09 & Verificar diseño responsivo colapsando a una sola columna en móviles. & \estadoPass \\ \hline
+\rowcolor{grisTecnico}
+TC-IDAR-003-10 & Verificar carga de Tooltips y badges de tendencia visual correctos. & \estadoPass \\ \hline
+\end{tabularx}
+
+\clearpage
+\subsection{IDAR-004 \& IDAR-005: Actividad y Métricas Históricas}
+\noindent
+\fontsize{9}{10.8}\selectfont\sffamily
+\begin{tabularx}{\textwidth}{|l|X|c|}
+\hline
+\rowcolor{headerTabla}
+\textbf{ID Caso} & \textbf{Descripción de la Verificación} & \textbf{Estado} \\
+\hline
+TC-IDAR-004-01 & Verificar límite inicial de 30 registros cronológicos ascendentes. & \estadoPass \\ \hline
+\rowcolor{grisTecnico}
+TC-IDAR-004-02 & Verificar formateo ISO/Local correcto de timestamps [HH:MM:SS]. & \estadoPass \\ \hline
+TC-IDAR-004-03 & Verificar comportamiento de Auto-scroll al último evento. & \estadoFail \\ \hline
+\rowcolor{grisTecnico}
+TC-IDAR-004-04 & Verificar \textit{polling} de red a 30s inyectando nuevos logs asíncronamente. & \estadoPass \\ \hline
+TC-IDAR-004-05 & Verificar suavizado de UI (Framer Motion) al apilar nuevas filas. & \estadoPass \\ \hline
+\rowcolor{grisTecnico}
+TC-IDAR-004-06 & Verificar interrupción de \textit{polling} si se revoca el token JWT activo. & \estadoPass \\ \hline
+TC-IDAR-004-07 & Verificar presencia visual del cursor de espera de nuevos logs. & \estadoPass \\ \hline
+\rowcolor{grisTecnico}
+TC-IDAR-005-01 & Verificar renderizado vectorial de gradientes en gráfica "Activos vs Total". & \estadoPass \\ \hline
+TC-IDAR-005-02 & Verificar filtrado del eje X al parámetro "7d" reduciendo el dataset. & \estadoPass \\ \hline
+\rowcolor{grisTecnico}
+TC-IDAR-005-03 & Verificar filtrado del eje X al parámetro "30d" con re-renderizado. & \estadoPass \\ \hline
+TC-IDAR-005-04 & Verificar ejecución de Trigger en PostgreSQL sobre la Vista Materializada. & \estadoPass \\ \hline
+\rowcolor{grisTecnico}
+TC-IDAR-005-05 & Verificar paleta de colores de Roles (Admin/Violeta, Reclutador/Lila). & \estadoPass \\ \hline
+TC-IDAR-005-06 & Verificar cálculo algebraico (sumatoria 100\%) en leyenda. & \estadoPass \\ \hline
+\rowcolor{grisTecnico}
+TC-IDAR-005-07 & Verificar rol dinámico asumiendo "Estándar" por defecto. & \estadoPass \\ \hline
+TC-IDAR-005-08 & Verificar omisión de rendering para roles inactivos en \textit{Pie Chart} (Manejo de NaN). & \estadoFail \\ \hline
+\rowcolor{grisTecnico}
+TC-IDAR-005-09 & Verificar que REFRESH MATERIALIZED VIEW se ejecute sin bloqueos globales. & \estadoPass \\ \hline
+\end{tabularx}
+
+\subsection{CONX-004 \& CONX-009: Formación y Experiencia Laboral}
+\noindent
+\fontsize{9}{10.8}\selectfont\sffamily
+\begin{tabularx}{\textwidth}{|l|X|c|}
+\hline
+\rowcolor{headerTabla}
+\textbf{ID Caso} & \textbf{Descripción de la Verificación} & \textbf{Estado} \\
+\hline
+TC-CONX-004-01 & Verificar inserción de PDF Base64 sin romper UI del modal. & \estadoFail \\ \hline
+\rowcolor{grisTecnico}
+TC-CONX-004-02 & Verificar cast explícito de JDBC hacia variables fecha y booleano. & \estadoFail \\ \hline
+TC-CONX-004-03 & Verificar que el checkbox "Estudiando aquí" anule la Fecha Fin. & \estadoPass \\ \hline
+\rowcolor{grisTecnico}
+TC-CONX-004-04 & Verificar validación de línea temporal (Fecha Fin $\ge$ Fecha Inicio). & \estadoPass \\ \hline
+TC-CONX-004-05 & Verificar límite numérico 0-100 para campo de Promedio/GPA. & \estadoPass \\ \hline
+\rowcolor{grisTecnico}
+TC-CONX-004-06 & Verificar previsualización dinámica en UI de Base64 cargado. & \estadoPass \\ \hline
+TC-CONX-004-07 & Verificar borrado en cliente de archivo Base64 (Limpieza de memoria). & \estadoPass \\ \hline
+\rowcolor{grisTecnico}
+TC-CONX-004-08 & Verificar re-poblado idéntico del formulario al pulsar el icono "Editar". & \estadoPass \\ \hline
+TC-CONX-009-01 & Verificar tolerancia PostgreSQL ante Strings nulos/vacíos. & \estadoFail \\ \hline
+\rowcolor{grisTecnico}
+TC-CONX-009-02 & Verificar ruta estricta con userId durante solicitud DELETE. & \estadoFail \\ \hline
+TC-CONX-009-03 & Verificar automatización del campo Empresa al setear "Freelance". & \estadoPass \\ \hline
+\rowcolor{grisTecnico}
+TC-CONX-009-04 & Verificar truncado de línea (Ver más...) con descripciones largas. & \estadoPass \\ \hline
+TC-CONX-009-05 & Verificar recálculo asíncrono de "Años Experiencia" al borrar ítems. & \estadoPass \\ \hline
+\end{tabularx}
+
+\clearpage
+\subsection{CONX-005: Búsqueda y Descubrimiento de Talento}
+\noindent
+\fontsize{9}{10.8}\selectfont\sffamily
+\begin{tabularx}{\textwidth}{|l|X|c|}
+\hline
+\rowcolor{headerTabla}
+\textbf{ID Caso} & \textbf{Descripción de la Verificación} & \textbf{Estado} \\
+\hline
+TC-CONX-005-01 & Verificar layout fluido sin desbordamiento blanco en monitores 4K. & \estadoFail \\ \hline
+\rowcolor{grisTecnico}
+TC-CONX-005-02 & Verificar reseteo asíncrono de \texttt{currentPage} a 1 al inyectar nuevos filtros. & \estadoFail \\ \hline
+TC-CONX-005-03 & Verificar reestructuración en 3 columnas en pantallas "2xl" (Tailwind). & \estadoPass \\ \hline
+\rowcolor{grisTecnico}
+TC-CONX-005-04 & Verificar normalización \textit{case-insensitive} y soporte de acentos. & \estadoPass \\ \hline
+TC-CONX-005-05 & Verificar límite frontal de 3 Badges de filtro de habilidad en el input. & \estadoPass \\ \hline
+\rowcolor{grisTecnico}
+TC-CONX-005-06 & Verificar comportamiento combinatorio AND entre múltiples selectores. & \estadoPass \\ \hline
+TC-CONX-005-07 & Verificar botón "Limpiar Filtros" restaurando lista base desde caché. & \estadoPass \\ \hline
+\rowcolor{grisTecnico}
+TC-CONX-005-08 & Verificar inyección del Empty State ("Sin coincidencias") en conjuntos nulos. & \estadoPass \\ \hline
+TC-CONX-005-09 & Verificar lógica paginadora de a 6 tarjetas bloqueando "Next" al final. & \estadoPass \\ \hline
+\rowcolor{grisTecnico}
+TC-CONX-005-10 & Verificar preservación de estados en URL o contexto tras interacción. & \estadoPass \\ \hline
+\end{tabularx}
+
+% ------------------------------------------
+% 4. REGISTRO DE DEFECTOS
+% ------------------------------------------
+\section{Registros de Defectos (Bug Reports)}
+\label{sec:bug_reports_sp4}
+
+\begin{AlertaDefecto}
+Durante la ejecución del ciclo de pruebas se materializaron \textbf{18 defectos de índole funcional y arquitectónica}. Las anomalías detectadas en los componentes asíncronos y transacciones SQL fueron levantadas y \textbf{mitigadas al 100\%} por el equipo de desarrollo.
+\end{AlertaDefecto}
+
+% BUG 001 (GAN-002-03)
+\begin{BugReport}
+ID de Defecto & \textbf{BUG-001}: Error de renderizado en documentos .doc y .docx. (TC-GAN-002-03) \\
+\hline
+\rowcolor{grisTecnico}
+Severidad & Alta \\
+\hline
+Prioridad & Alta \\
+\hline
+\rowcolor{grisTecnico}
+Pasos para Reproducir & 
+\raggedright\arraybackslash
+1. Ir al panel de edición e ingresar a evidencias. \par
+2. Subir un archivo de texto .docx. \par
+3. Guardar e intentar visualizar el documento. \\
+\hline
+Resultado Esperado & El sistema procesa y permite lectura en línea del documento original. \\
+\hline
+\rowcolor{grisTecnico}
+Resultado Actual & \raggedright\arraybackslash Se sube al servidor, pero el portafolio muestra pantalla en blanco o icono roto por formato no soportado en renderizador web. \\
+\hline
+\end{BugReport}
+
+% BUG 002 (GAN-002-04)
+\clearpage
+\begin{BugReport}
+ID de Defecto & \textbf{BUG-002}: Imágenes (PNG/JPG) aparecen rotas en portafolio. (TC-GAN-002-04) \\
+\hline
+\rowcolor{grisTecnico}
+Severidad & Alta \\
+\hline
+Prioridad & Alta \\
+\hline
+\rowcolor{grisTecnico}
+Pasos para Reproducir & 
+\raggedright\arraybackslash
+1. Subir imagen .png o .jpg en evidencias multimedia. \par
+2. Guardar y visitar vista de reclutador. \\
+\hline
+Resultado Esperado & Imágenes se cargan y despliegan de forma nítida. \\
+\hline
+\rowcolor{grisTecnico}
+Resultado Actual & \raggedright\arraybackslash Icono de imagen quebrada o cuadro gris vacío por falla en enrutamiento absoluto/relativo de URL. \\
+\hline
+\end{BugReport}
+
+% BUG 003 (GAN-006-06)
+\begin{BugReport}
+ID de Defecto & \textbf{BUG-003}: Interfaz colapsa ante \textit{payloads} incompletos de BD. (TC-GAN-006-06) \\
+\hline
+\rowcolor{grisTecnico}
+Severidad & Alta \\
+\hline
+Prioridad & Alta \\
+\hline
+\rowcolor{grisTecnico}
+Pasos para Reproducir & 
+\raggedright\arraybackslash
+1. Interceptar red y simular respuesta incompleta de la API. \par
+2. Ver renderizado del catálogo. \\
+\hline
+Resultado Esperado & Advertencia visual "Datos incompletos" sin romper el DOM principal. \\
+\hline
+\rowcolor{grisTecnico}
+Resultado Actual & \raggedright\arraybackslash Errores de render (White screen) por carecer de Optional Chaining. \\
+\hline
+\end{BugReport}
+
+% BUG 004 (GAN-006-07)
+\begin{BugReport}
+ID de Defecto & \textbf{BUG-004}: Posiciones duplicadas tras reordenamiento asíncrono. (TC-GAN-006-07) \\
+\hline
+\rowcolor{grisTecnico}
+Severidad & Alta \\
+\hline
+Prioridad & Alta \\
+\hline
+\rowcolor{grisTecnico}
+Pasos para Reproducir & 
+\raggedright\arraybackslash
+1. Usar \textit{Drag \& Drop} velozmente en catálogo. \par
+2. Guardar y refrescar. \\
+\hline
+Resultado Esperado & Posiciones secuenciales estrictas ($1,2,3,4...$). \\
+\hline
+\rowcolor{grisTecnico}
+Resultado Actual & \raggedright\arraybackslash Elementos comparten mismo index en BD (ej. $1, 2, 2, 4$), sobreponiéndose en UI. \\
+\hline
+\end{BugReport}
+
+% BUG 005 (GAN-006-08)
+\clearpage
+\begin{BugReport}
+ID de Defecto & \textbf{BUG-005}: Ausencia de control visual (Feedback) ante Error 500. (TC-GAN-006-08) \\
+\hline
+\rowcolor{grisTecnico}
+Severidad & Alta \\
+\hline
+Prioridad & Alta \\
+\hline
+\rowcolor{grisTecnico}
+Pasos para Reproducir & 
+\raggedright\arraybackslash
+1. Provocar caída de backend (Error 500). \par
+2. Ingresar al catálogo. \\
+\hline
+Resultado Esperado & Mensaje amigable de "Problema temporal, reintente". \\
+\hline
+\rowcolor{grisTecnico}
+Resultado Actual & \raggedright\arraybackslash Interfaz congelada con \textit{spinner} infinito. \\
+\hline
+\end{BugReport}
+
+% BUG 006 (GAN-006-10)
+\begin{BugReport}
+ID de Defecto & \textbf{BUG-006}: Inconsistencias de integridad relacional silenciosas. (TC-GAN-006-10) \\
+\hline
+\rowcolor{grisTecnico}
+Severidad & Alta \\
+\hline
+Prioridad & Alta \\
+\hline
+\rowcolor{grisTecnico}
+Pasos para Reproducir & 
+\raggedright\arraybackslash
+1. Forzar registro en BD sin relaciones válidas. \par
+2. Consultar evidencias asociadas. \\
+\hline
+Resultado Esperado & Sistema detecta la orfandad y registra advertencia en log. \\
+\hline
+\rowcolor{grisTecnico}
+Resultado Actual & \raggedright\arraybackslash La falla pasa desapercibida, corrompiendo exportaciones futuras. \\
+\hline
+\end{BugReport}
+
+% BUG 007 (GAN-007-08)
+\begin{BugReport}
+ID de Defecto & \textbf{BUG-007}: Ruptura por \texttt{TypeError} ante objeto JSON vacío \texttt{\{ \}}. (TC-GAN-007-08) \\
+\hline
+\rowcolor{grisTecnico}
+Severidad & Alta \\
+\hline
+Prioridad & Alta \\
+\hline
+\rowcolor{grisTecnico}
+Pasos para Reproducir & 
+\raggedright\arraybackslash
+1. Navegar a \texttt{/dashboard} con usuario sin perfil creado. \par
+2. API retorna HTTP 200 con cuerpo \texttt{\{ \}}. \\
+\hline
+Resultado Esperado & \textit{Fallback} a UI controlada informando "No se pudo cargar dashboard". \\
+\hline
+\rowcolor{grisTecnico}
+Resultado Actual & \raggedright\arraybackslash Se ejecuta \texttt{setData(\{ \})} evadiendo el \textit{catch}, y colapsa al buscar \texttt{data.basic\_info.first\_name} (Pantalla de error nativa). \\
+\hline
+\end{BugReport}
+
+% BUG 008 (GAN-007-10)
+\clearpage
+\begin{BugReport}
+ID de Defecto & \textbf{BUG-008}: Ausencia de refetch al volver a Dashboard desde sub-rutas. (TC-GAN-007-10) \\
+\hline
+\rowcolor{grisTecnico}
+Severidad & Alta \\
+\hline
+Prioridad & Alta \\
+\hline
+\rowcolor{grisTecnico}
+Pasos para Reproducir & 
+\raggedright\arraybackslash
+1. Ir a Experiencia, agregar una nueva, y pulsar Volver. \par
+2. Observar Dashboard principal. \\
+\hline
+Resultado Esperado & Dashboard se actualiza mostrando la nueva métrica (ej. 1 exp). \\
+\hline
+\rowcolor{grisTecnico}
+Resultado Actual & \raggedright\arraybackslash Cache \textit{stale} activo. Solo dispara fetch si cambia el \texttt{user.id}. \\
+\hline
+\end{BugReport}
+
+% BUG 009 (IDAR-003-03)
+\begin{BugReport}
+ID de Defecto & \textbf{BUG-009}: Expiración de JWT causa tormenta de peticiones (Polling). (TC-IDAR-003-03) \\
+\hline
+\rowcolor{grisTecnico}
+Severidad & Alta \\
+\hline
+Prioridad & Alta \\
+\hline
+\rowcolor{grisTecnico}
+Pasos para Reproducir & 
+\raggedright\arraybackslash
+1. Dejar panel Admin inactivo hasta expirar token. \par
+2. Esperar al ciclo de setInterval. \\
+\hline
+Resultado Esperado & El sistema detecta error, detiene el \textit{polling} y expulsa al usuario. \\
+\hline
+\rowcolor{grisTecnico}
+Resultado Actual & \raggedright\arraybackslash Ciclo infinito de errores 403 en consola (AxiosError). \\
+\hline
+\end{BugReport}
+
+% BUG 010 (IDAR-003-03_Navegacion)
+\begin{BugReport}
+ID de Defecto & \textbf{BUG-010}: Duplicidad de prefijo \texttt{/api} en interceptores de Axios. (TC-IDAR-003-03) \\
+\hline
+\rowcolor{grisTecnico}
+Severidad & Alta \\
+\hline
+Prioridad & Alta \\
+\hline
+\rowcolor{grisTecnico}
+Pasos para Reproducir & 
+\raggedright\arraybackslash
+1. Fusionar nueva rama de \texttt{apiClient.ts}. \par
+2. Cargar gráficas Admin. \\
+\hline
+Resultado Esperado & Resoluciones HTTP 200 en capa \texttt{/api/v1/...} \\
+\hline
+\rowcolor{grisTecnico}
+Resultado Actual & \raggedright\arraybackslash Rutas mutan a \texttt{/api/api/v1}, retornando 404 y trancando las visualizaciones. \\
+\hline
+\end{BugReport}
+
+% BUG 011 (IDAR-004-03)
+\clearpage
+\begin{BugReport}
+ID de Defecto & \textbf{BUG-011}: Secuestro invasivo de Scroll en consola de logs. (TC-IDAR-004-03) \\
+\hline
+\rowcolor{grisTecnico}
+Severidad & Baja \\
+\hline
+Prioridad & Baja \\
+\hline
+\rowcolor{grisTecnico}
+Pasos para Reproducir & 
+\raggedright\arraybackslash
+1. Hacer scroll hacia arriba en la consola para leer logs viejos. \par
+2. Entra un nuevo evento (polling). \\
+\hline
+Resultado Esperado & Mantenimiento de posición relativa de lectura. \\
+\hline
+\rowcolor{grisTecnico}
+Resultado Actual & \raggedright\arraybackslash Fuerza un salto brusco al \texttt{scrollHeight} inferior. \\
+\hline
+\end{BugReport}
+
+% BUG 012 (IDAR-005-08)
+\begin{BugReport}
+ID de Defecto & \textbf{BUG-012}: Renderizado de basura visual (NaN/0\%) en gráfica de Dona. (TC-IDAR-005-08) \\
+\hline
+\rowcolor{grisTecnico}
+Severidad & Baja \\
+\hline
+Prioridad & Baja \\
+\hline
+\rowcolor{grisTecnico}
+Pasos para Reproducir & 
+\raggedright\arraybackslash
+1. Crear un rol sin usuarios adscritos en BD. \par
+2. Cargar Dashboard de métricas históricas. \\
+\hline
+Resultado Esperado & Roles en cero se excluyen del componente renderizado. \\
+\hline
+\rowcolor{grisTecnico}
+Resultado Actual & \raggedright\arraybackslash Se plagan múltiples leyendas "Estándar (0.0\%)" rompiendo el gráfico. \\
+\hline
+\end{BugReport}
+
+% BUG 013 (CONX-004-01)
+\begin{BugReport}
+ID de Defecto & \textbf{BUG-013}: Inyección de Base64 tipo PDF en etiqueta HTML de imagen. (TC-CONX-004-01) \\
+\hline
+\rowcolor{grisTecnico}
+Severidad & Alta \\
+\hline
+Prioridad & Media \\
+\hline
+\rowcolor{grisTecnico}
+Pasos para Reproducir & 
+\raggedright\arraybackslash
+1. Adjuntar \texttt{.pdf} en modal de Formación. \par
+2. Observar previsualización. \\
+\hline
+Resultado Esperado & Render de ícono genérico "Documento Adjunto". \\
+\hline
+\rowcolor{grisTecnico}
+Resultado Actual & \raggedright\arraybackslash Frontend inyecta el stream binario directo a \texttt{<img src="" />}, generando UI rota. \\
+\hline
+\end{BugReport}
+
+% BUG 014 (CONX-004-02)
+\clearpage
+\begin{BugReport}
+ID de Defecto & \textbf{BUG-014}: Error 500 por \texttt{BadSqlGrammarException} (Falta de CAST). (TC-CONX-004-02) \\
+\hline
+\rowcolor{grisTecnico}
+Severidad & Crítica \\
+\hline
+Prioridad & Alta \\
+\hline
+\rowcolor{grisTecnico}
+Pasos para Reproducir & 
+\raggedright\arraybackslash
+1. Completar formación académica y Guardar. \par
+2. Revisar traza de PostgreSQL. \\
+\hline
+Resultado Esperado & Transacción exitosa mediante \texttt{sp\_registrar\_experiencia}. \\
+\hline
+\rowcolor{grisTecnico}
+Resultado Actual & \raggedright\arraybackslash Spring Boot envía UUID/Booleans como Strings. BD aborta transacción por incompatibilidad de tipos. \\
+\hline
+\end{BugReport}
+
+% BUG 015 (CONX-009-01)
+\begin{BugReport}
+ID de Defecto & \textbf{BUG-015}: DataIntegrityViolation por \textit{Constraint} de Dominio en PostgreSQL. (TC-CONX-009-01) \\
+\hline
+\rowcolor{grisTecnico}
+Severidad & Alta \\
+\hline
+Prioridad & Alta \\
+\hline
+\rowcolor{grisTecnico}
+Pasos para Reproducir & 
+\raggedright\arraybackslash
+1. Llenar experiencia dejando \texttt{companyUrl} en blanco (""). \par
+2. Guardar. \\
+\hline
+Resultado Esperado & Backend muta string vacío a NULL válido. \\
+\hline
+\rowcolor{grisTecnico}
+Resultado Actual & \raggedright\arraybackslash Dominio extendido de PostgreSQL prohíbe explícitamente "" (cadena vacía) arrojando excepción. \\
+\hline
+\end{BugReport}
+
+% BUG 016 (CONX-009-02)
+\begin{BugReport}
+ID de Defecto & \textbf{BUG-016}: Bloqueo HTTP 405 (Method Not Supported) al eliminar. (TC-CONX-009-02) \\
+\hline
+\rowcolor{grisTecnico}
+Severidad & Alta \\
+\hline
+Prioridad & Media \\
+\hline
+\rowcolor{grisTecnico}
+Pasos para Reproducir & 
+\raggedright\arraybackslash
+1. Clic en "Eliminar Registro" en tarjeta de Experiencia. \\
+\hline
+Resultado Esperado & Confirmación y limpieza asíncrona de UI/BD. \\
+\hline
+\rowcolor{grisTecnico}
+Resultado Actual & \raggedright\arraybackslash Frontend dispara \texttt{/\{id\}} en lugar de la firma segura requerida por el API. \\
+\hline
+\end{BugReport}
+
+% BUG 017 (CONX-005-01)
+\clearpage
+\begin{BugReport}
+ID de Defecto & \textbf{BUG-017}: Desbordamiento y estiramiento desproporcionado en monitores Ultrawide. (TC-CONX-005-01) \\
+\hline
+\rowcolor{grisTecnico}
+Severidad & Baja \\
+\hline
+Prioridad & Baja \\
+\hline
+\rowcolor{grisTecnico}
+Pasos para Reproducir & 
+\raggedright\arraybackslash
+1. Abrir \textit{Descubrimiento} en resolución nativa 2560x1440. \\
+\hline
+Resultado Esperado & Fluid layout ajustando densidad de tarjetas a 3+ columnas. \\
+\hline
+\rowcolor{grisTecnico}
+Resultado Actual & \raggedright\arraybackslash Limitante estricto \texttt{max-w-7xl} confina el panel al centro con vacíos gigantes; las tarjetas lucen deformadas. \\
+\hline
+\end{BugReport}
+
+% BUG 018 (CONX-005-02)
+\begin{BugReport}
+ID de Defecto & \textbf{BUG-018}: Desincronización de estado reactivo del paginador (Pantalla Vacía). (TC-CONX-005-02) \\
+\hline
+\rowcolor{grisTecnico}
+Severidad & Media \\
+\hline
+Prioridad & Media \\
+\hline
+\rowcolor{grisTecnico}
+Pasos para Reproducir & 
+\raggedright\arraybackslash
+1. Avanzar a página 3 en lista general. \par
+2. Digitar filtro súper restrictivo que devuelve solo 2 registros totales. \\
+\hline
+Resultado Esperado & Estado de página fuerza su mutación automática a 1. \\
+\hline
+\rowcolor{grisTecnico}
+Resultado Actual & \raggedright\arraybackslash Paginador exige la "Página 3" de un \textit{Array} reducido. React renderiza \textit{whitespace} total sin avisar. \\
+\hline
+\end{BugReport}
+
+
+% ------------------------------------------
+% 5. INFORME DE RESUMEN
+% ------------------------------------------
+\section{Informe de Resumen de V\&V (SVVR)}
+\label{sec:svvr_sp4}
+
+\subsection{Métricas de Ejecución y Resiliencia del Equipo}
+De acuerdo con las métricas extraídas del cierre del Sprint 4, el comportamiento de la ejecución arroja un éxito rotundo a nivel de producto, completando el 100\% del alcance estipulado (120 Story Points). Los análisis del Gráfico Burn-down evidenciaron una meseta operativa generada por la falta de alineación en el estilo lógico de programación (calificada en 8/10 en comunicación reactiva) y una implementación defectuosa del \textit{Peer Programming}.
+
+Frente al riesgo de inestabilidad, el núcleo activo demostró un nivel de autoorganización impecable (10/10), aplicando un \textit{swarming de emergencia} en las horas finales. Esto permitió absorber la carga técnica sobre el stack establecido y asegurar la integración funcional.
+
+\subsection{Estado Final de la Deuda Técnica}
+Durante la ejecución se documentaron 18 defectos de severidad Alta y Media asociados a fallos de concurrencia, renderizado anómalo de UI y excepciones SQL. Para el cierre de este informe, el equipo de desarrollo \textbf{logró resolver el 100\% de los bugs detectados}. A nivel técnico, se reforzó la arquitectura mediante la sanitización de payloads, correcciones en interceptores Axios y refinamiento de la distribución espacial responsiva. Se ha emitido una recomendación estricta de implementar un "Protocolo de Escalamiento Inmediato" para evitar futuros cuellos de botella y reducir el riesgo de \textit{burnout}.
+
+\subsection{Dictamen de Liberación}
+\begin{tcolorbox}[colback=white, colframe=bgPass, boxrule=1.2pt, arc=2pt, title={\faCheckCircle\ \textbf{DICTAMEN: SPRINT EXITOSO Y ESTABILIZADO}}, coltitle=bgPass, fonttitle=\sffamily, attach title to upper=\par\vspace{0.2em}]
+\sffamily
+Habiendo validado la estabilidad de las integraciones externas (GitHub), los paneles de monitoreo asíncrono y garantizado el saneamiento transaccional en PostgreSQL y Next.js ante fallos de conexión, el equipo de Control de Calidad certifica el cumplimiento de los Criterios de Aceptación. La Tasa de Éxito funcional cierra al 100\% de casos saneados. Por consiguiente, el incremento del Sprint 4 \textbf{es declarado apto para su liberación a producción}.
+\end{tcolorbox}
+
+% ------------------------------------------
+% 6. CONTROL DE VERSIONES
+% ------------------------------------------
+\section{Control de Versiones y Nomenclatura}
+\label{sec:versioning_sp4}
+
+Este documento y su respectivo incremento transaccional han sido etiquetados bajo la denominación \textbf{v1.3.0}, regidos por la norma de \textit{Semantic Versioning (SemVer)}.
+
+\begin{itemize}[noitemsep]
+    \item \textbf{MAJOR (1):} El sistema consolida la arquitectura original, manteniendo la integridad del esquema RESTful de Spring Boot y la capa de seguridad implementados previamente.
+    \item \textbf{MINOR (3):} Refleja la inyección masiva de características retrocompatibles, incluyendo integraciones externas con APIs de terceros (GitHub), Vistas Materializadas y Dashboards globales de supervisión administrativa.
+    \item \textbf{PATCH (0):} La absorción de fallos lógicos (18 Bugs de QA) fue ejecutada integralmente dentro de la ventana del Sprint (Hotfixes \textit{In-Sprint}), prescindiendo de parches auxiliares post-liberación.
+\end{itemize}
