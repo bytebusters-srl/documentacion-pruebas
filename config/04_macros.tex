@@ -1,56 +1,295 @@
 % 04_macros.tex
-% Componentes de Control de Calidad (Bug Reports y Test Cases)
+% Componentes de Control de Calidad (Test Cases, Bug Reports, Trazabilidad, Métricas)
+% Documento de Pruebas y Validaciones (V&V)
 
-% 1. Macros de Estado (Celdas condicionales)
-\newcommand{\estadoPass}{\cellcolor{bgPass}\textcolor{white}{\sffamily\bfseries PASS}}
-\newcommand{\estadoFail}{\cellcolor{bgFail}\textcolor{white}{\sffamily\bfseries FAIL}}
-\newcommand{\estadoBlocked}{\cellcolor{bgBlocked}\textcolor{white}{\sffamily\bfseries BLOCKED}}
+% =====================================================================
+% 0. PARCHE BABEL-ESPAÑOL: el guion activo de babel-spanish ejecuta
+% \char\hyphenchar\font; en la familia tipográfica monoespaciada (Courier,
+% hyphenchar=-1) esto produce "Bad character code (-1)". Se redefine para
+% emitir un guion literal seguro (catcode 12) sin recursión.
+% =====================================================================
+\makeatletter
+\@ifundefined{es@chf}{}{\renewcommand{\es@chf}{\string-}}
+\makeatother
+
+% =====================================================================
+% 1. FORMATO EN LÍNEA: comandos, rutas, endpoints
+% =====================================================================
 \newcommand{\comando}[1]{{\fontfamily{pcr}\fontsize{9}{10.8}\selectfont\colorbox{grisTecnico}{\texttt{#1}}}}
+\newcommand{\ruta}[1]{{\ttfamily\fontsize{8.5}{10.2}\selectfont\seqsplit{#1}}}
 
-% 2. Entorno: Especificación de Casos de Prueba (Ejecución)
-% Usa tipografía sans-serif a 9pt para alta densidad de datos
-\newenvironment{TablaCasoPrueba}{
-    \renewcommand{\arraystretch}{1.5}
-    \vspace{0.3cm}
-    \noindent
-    \fontsize{9}{10.8}\selectfont\sffamily
-    \tabularx{\textwidth}{|c|X|X|c|}
+\makeatletter
+\newcommand{\pathbreak}[1]{\texttt{\@pathbreak#1\relax}}
+\def\@pathbreak#1{%
+  \ifx#1\relax\else
+    \ifx#1/\,\discretionary{}{}{}/\discretionary{}{}{}%
+    \else\ifx#1_\_\discretionary{}{}{}%
+    \else\ifx#1-#1\discretionary{}{}{}%
+    \else\ifx#1.#1\discretionary{}{}{}%
+    \else#1\fi\fi\fi\fi
+    \expandafter\@pathbreak
+  \fi}
+\makeatother
+
+% Tipos de columna con centrado vertical
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}m{#1}}
+\newcolumntype{C}[1]{>{\centering\arraybackslash}m{#1}}
+\newcolumntype{R}[1]{>{\raggedleft\arraybackslash}m{#1}}
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+\newcolumntype{Z}{>{\centering\arraybackslash}X}
+
+% =====================================================================
+% 2. BADGES DE ESTADO Y SEVERIDAD
+% =====================================================================
+\newcommand{\estadoPass}{\cellcolor{bgPass}{\sffamily\bfseries\color{white}PASS}}
+\newcommand{\estadoFail}{\cellcolor{bgFail}{\sffamily\bfseries\color{white}FAIL}}
+\newcommand{\estadoBlocked}{\cellcolor{bgBlocked}{\sffamily\bfseries\color{white}BLOCK}}
+\newcommand{\estadoSkip}{\cellcolor{bgSkip}{\sffamily\bfseries\color{white}SKIP}}
+
+% Badges en línea (para texto corrido y celdas)
+\newcommand{\badge}[2]{{\setlength{\fboxsep}{2pt}\colorbox{#1}{\sffamily\bfseries\fontsize{7.5}{9}\selectfont\color{white}\,#2\,}}}
+\newcommand{\sevCrit}{\badge{sevCritica}{CRÍTICA}}
+\newcommand{\sevAlt}{\badge{sevAlta}{ALTA}}
+\newcommand{\sevMed}{\badge{sevMedia}{MEDIA}}
+\newcommand{\sevBaj}{\badge{sevBaja}{BAJA}}
+\newcommand{\bPass}{\badge{bgPass}{PASS}}
+\newcommand{\bFail}{\badge{bgFail}{FAIL}}
+\newcommand{\bBlock}{\badge{bgBlocked}{BLOCK}}
+% Estado de resolución de defectos
+\newcommand{\resCerrado}{\badge{bgPass}{CERRADO}}
+\newcommand{\resAbierto}{\badge{sevAlta}{ABIERTO}}
+\newcommand{\resResuelto}{\badge{sevBaja}{RESUELTO}}
+\newcommand{\resVerif}{\badge{bgPass}{VERIFICADO}}
+\newcommand{\resDiferido}{\badge{bgSkip}{DIFERIDO}}
+
+% =====================================================================
+% 3. TABLA-CATÁLOGO DE CASOS DE PRUEBA (resumen de un sprint, longtable)
+% Uso: \begin{CatalogoTC} ... \tcRow{ID}{Título}{Tipo}{Prio}{\bPass} ... \end{CatalogoTC}
+% =====================================================================
+\newenvironment{CatalogoTC}{%
+    \renewcommand{\arraystretch}{1.3}%
+    \fontsize{8}{9.6}\selectfont\sffamily%
+    \setlength{\tabcolsep}{4pt}%
+    \begin{longtable}{%
+        |>{\ttfamily\bfseries\color{colorPrimario}}p{1.9cm}%
+        |>{\raggedright\arraybackslash}p{6.4cm}%
+        |>{\centering\arraybackslash}p{2.4cm}%
+        |>{\centering\arraybackslash}p{1.0cm}%
+        |>{\centering\arraybackslash}p{1.4cm}|}
     \hline
     \rowcolor{headerTabla}
-    \textbf{Paso \#} & \textbf{Acción (Instrucción)} & \textbf{Resultado Esperado (Criterio)} & \textbf{Estado} \\
+    \sffamily\textbf{ID} & \sffamily\textbf{Título del caso} & \sffamily\textbf{Tipo} & \sffamily\textbf{Prio} & \sffamily\textbf{Result.} \\
     \hline
-}{
-    \endtabularx
-    \vspace{0.3cm}
-}
-
-% 3. Entorno: Reporte de Defectos (Bug Report)
-\newenvironment{BugReport}{
-    \renewcommand{\arraystretch}{1.5}
-    \vspace{0.3cm}
-    \noindent
-    \fontsize{9}{10.8}\selectfont\sffamily
-    \tabularx{\textwidth}{|>{\bfseries\color{colorPrimario}}l|X|}
+    \endfirsthead
+    \multicolumn{5}{l}{\sffamily\footnotesize\itshape\color{grisISO}Catálogo de casos de prueba (continuación)}\\
     \hline
     \rowcolor{headerTabla}
-    Campo & Contenido \\
+    \sffamily\textbf{ID} & \sffamily\textbf{Título del caso} & \sffamily\textbf{Tipo} & \sffamily\textbf{Prio} & \sffamily\textbf{Result.} \\
     \hline
-}{
-    \endtabularx
-    \vspace{0.3cm}
+    \endhead
+    \hline
+    \multicolumn{5}{r}{\sffamily\tiny\color{grisISO}\textit{continúa en la página siguiente}}\\
+    \endfoot
+    \hline
+    \endlastfoot
+}{%
+    \end{longtable}%
 }
+\newcommand{\tcRow}[5]{#1 & #2 & #3 & #4 & #5 \\ \hline}
 
-% Nota Técnica general preservada
+% =====================================================================
+% 4. CASO DE PRUEBA DETALLADO (ficha forense)
+% Diseño: barra de título de color + tablas tabularx INDEPENDIENTES en el
+% flujo del texto. No se anida tabularx dentro de un tcolorbox breakable
+% (eso provoca cascadas de error de "TX@get@body"); en cambio, cada bloque es
+% una tabla pequeña separada, por lo que LaTeX puede quebrar entre bloques.
+% Uso:
+% \begin{FichaTC}{ID}{Título} ... \end{FichaTC}
+% =====================================================================
+\newcommand{\fichaTitulo}[3]{% color, icono, texto
+    \vspace{0.35cm}\par\noindent
+    {\setlength{\fboxsep}{4pt}\noindent\colorbox{#1}{\parbox{\dimexpr\linewidth-8pt\relax}{%
+       \sffamily\bfseries\small\color{white}#2\ \ #3}}}\par\nopagebreak\vspace{1pt}}
+
+\newenvironment{FichaTC}[2]{%
+    \fichaTitulo{colorPrimario}{\faVial}{#1 — #2}%
+    \renewcommand{\arraystretch}{1.2}\fontsize{8.5}{10.4}\selectfont\sffamily
+}{%
+    \vspace{0.2cm}}
+\newcommand{\tcMeta}[4]{%
+    \noindent\begin{tabularx}{\linewidth}{|>{\bfseries\color{colorPrimario}}p{2.4cm}|Y|>{\bfseries\color{colorPrimario}}p{2.0cm}|Y|}
+    \hline\rowcolor{grisTecnico}
+    Tipo & #1 & Prioridad & #2 \\ \hline
+    \rowcolor{grisTecnico}
+    Componente & #3 & Requisito & #4 \\ \hline
+    \end{tabularx}\par}
+\newcommand{\tcCampo}[2]{%
+    \noindent\begin{tabularx}{\linewidth}{|>{\bfseries\color{colorPrimario}}p{3.2cm}|Y|}
+    \hline #1 & #2 \\ \hline \end{tabularx}\par}
+% Tabla de pasos enumerados
+\newenvironment{tcPasos}{%
+    \noindent\tabularx{\linewidth}{|c|Y|Y|}
+    \hline\rowcolor{headerTabla}
+    \sffamily\textbf{\#} & \sffamily\textbf{Acción (instrucción)} & \sffamily\textbf{Resultado esperado} \\ \hline
+}{%
+    \endtabularx\par}
+\newcounter{tcpasocnt}
+\newcommand{\paso}[2]{\stepcounter{tcpasocnt}\arabic{tcpasocnt} & #1 & #2 \\ \hline}
+\newcommand{\resetPasos}{\setcounter{tcpasocnt}{0}}
+\newcommand{\tcResultado}[3]{%
+    \noindent\begin{tabularx}{\linewidth}{|>{\bfseries\color{colorPrimario}}p{3.2cm}|Y|}
+    \hline\rowcolor{headerTabla}
+    \multicolumn{2}{|l|}{\sffamily\textbf{Veredicto de ejecución}} \\ \hline
+    Resultado esperado & #1 \\ \hline
+    Resultado real & #2 \\ \hline
+    Estado & #3 \\ \hline
+    \end{tabularx}\par}
+
+% =====================================================================
+% 5. REPORTE DE DEFECTO (BUG REPORT) FORENSE
+% =====================================================================
+\newenvironment{FichaBug}[2]{%
+    \fichaTitulo{bgFail}{\faBug}{#1 — #2}%
+    \renewcommand{\arraystretch}{1.2}\fontsize{8.5}{10.4}\selectfont\sffamily
+}{%
+    \vspace{0.2cm}}
+\newcommand{\bugMeta}[4]{%
+    \noindent\begin{tabularx}{\linewidth}{|>{\bfseries\color{bgFail}}p{2.2cm}|Y|>{\bfseries\color{bgFail}}p{1.8cm}|Y|}
+    \hline\rowcolor{grisTecnico}
+    Severidad & #1 & Prioridad & #2 \\ \hline
+    \rowcolor{grisTecnico}
+    Componente & #3 & Estado & #4 \\ \hline
+    \end{tabularx}\par}
+\newcommand{\bugCampo}[2]{%
+    \noindent\begin{tabularx}{\linewidth}{|>{\bfseries\color{bgFail}}p{3.4cm}|Y|}
+    \hline #1 & #2 \\ \hline \end{tabularx}\par}
+% Bloque ancho (para pasos, RCA, evidencia) con título
+\newcommand{\bugBloque}[2]{%
+    \noindent\begin{tabularx}{\linewidth}{|Y|}
+    \hline\rowcolor{headerTabla}\sffamily\textbf{#1} \\ \hline
+    #2 \\ \hline \end{tabularx}\par}
+
+% =====================================================================
+% 6. TABLA DE PRUEBAS DE API (endpoint / payload / código HTTP)
+% =====================================================================
+\newenvironment{TablaAPI}{%
+    \renewcommand{\arraystretch}{1.35}\vspace{0.25cm}\noindent
+    \fontsize{8.5}{10.2}\selectfont\sffamily
+    \tabularx{\textwidth}{|>{\bfseries\color{colorPrimario}}p{3.2cm}|Y|}
+    \hline\rowcolor{headerTabla}
+    \sffamily\textbf{Atributo de la petición} & \sffamily\textbf{Valor} \\ \hline
+}{%
+    \endtabularx\vspace{0.25cm}}
+
+% =====================================================================
+% 7. MATRIZ DE TRAZABILIDAD (RTM) — longtable
+% =====================================================================
+\newenvironment{MatrizRTM}{%
+    \renewcommand{\arraystretch}{1.3}%
+    \fontsize{8}{9.6}\selectfont\sffamily\setlength{\tabcolsep}{4pt}%
+    \begin{longtable}{%
+        |>{\ttfamily\bfseries\color{colorPrimario}}p{2.0cm}%
+        |>{\raggedright\arraybackslash}p{5.3cm}%
+        |>{\ttfamily\raggedright\arraybackslash}p{3.0cm}%
+        |>{\ttfamily\raggedright\arraybackslash}p{2.6cm}|}
+    \hline\rowcolor{headerTabla}
+    \sffamily\textbf{Requisito} & \sffamily\textbf{Historia / Descripción} & \sffamily\textbf{Casos de prueba} & \sffamily\textbf{Defectos} \\ \hline
+    \endfirsthead
+    \multicolumn{4}{l}{\sffamily\footnotesize\itshape\color{grisISO}Matriz de trazabilidad (continuación)}\\ \hline
+    \rowcolor{headerTabla}
+    \sffamily\textbf{Requisito} & \sffamily\textbf{Historia / Descripción} & \sffamily\textbf{Casos de prueba} & \sffamily\textbf{Defectos} \\ \hline
+    \endhead
+    \hline\multicolumn{4}{r}{\sffamily\tiny\color{grisISO}\textit{continúa en la página siguiente}}\\ \endfoot
+    \hline\endlastfoot
+}{%
+    \end{longtable}}
+\newcommand{\rtmRow}[4]{#1 & #2 & #3 & #4 \\ \hline}
+
+% =====================================================================
+% 8. GRÁFICO DE BARRAS DE EJECUCIÓN (TikZ) — pasaron vs fallaron
+% \graficoEjecucion{pasaron}{fallaron}{bloqueados}{total}
+% =====================================================================
+\newcommand{\graficoEjecucion}[4]{%
+\begin{center}
+\begin{tikzpicture}[font=\sffamily\scriptsize]
+  \def\maxv{#4}
+  \pgfmathsetmacro{\sc}{6.0/\maxv}
+  \pgfmathsetmacro{\bp}{#1*\sc}
+  \pgfmathsetmacro{\bf}{#2*\sc}
+  \pgfmathsetmacro{\bb}{#3*\sc}
+  \fill[bgPass] (0,2.0) rectangle (\bp,2.6); \node[right] at (\bp,2.3) {Pasaron: #1};
+  \fill[bgFail] (0,1.1) rectangle (\bf,1.7); \node[right] at (\bf,1.4) {Fallaron: #2};
+  \fill[bgBlocked] (0,0.2) rectangle (\bb,0.8); \node[right] at (\bb,0.5) {Bloqueados: #3};
+  \draw[grisISO,->] (0,0) -- (6.6,0);
+  \draw[grisISO,->] (0,0) -- (0,3.0);
+  \node[left, text=grisISO] at (0,2.3) {};
+\end{tikzpicture}
+\end{center}}
+
+% Barra de cobertura horizontal sencilla. \barraCobertura{porcentaje}{etiqueta}
+\newcommand{\barraCobertura}[2]{%
+\noindent{\sffamily\fontsize{9}{11}\selectfont #2\par}%
+\noindent\begin{tikzpicture}[font=\sffamily\scriptsize]
+  \pgfmathsetmacro{\w}{#1*0.12}
+  \fill[grisTecnico] (0,0) rectangle (12,0.45);
+  \fill[colorPrimario] (0,0) rectangle (\w,0.45);
+  \draw[grisISO] (0,0) rectangle (12,0.45);
+  \node[right, text=white, font=\sffamily\bfseries\scriptsize] at (0.15,0.225) {#1\%};
+\end{tikzpicture}\par\vspace{0.2cm}}
+
+% =====================================================================
+% 9. CAJAS DE AVISO (reutilizadas del estándar corporativo)
+% =====================================================================
 \newtcolorbox{NotaTecnica}{
-    colback=white,
-    colframe=bordeNotaTecnica,
-    boxrule=1.2pt,
-    arc=2pt,
-    title={\faInfoCircle\ \textbf{Nota de Configuración}},
-    coltitle=bordeNotaTecnica,
-    fonttitle=\sffamily,
-    attach title to upper=\par\vspace{0.2em}
-}
+    colback=white, colframe=bordeNotaTecnica, boxrule=1.2pt, arc=2pt,
+    title={\faInfoCircle\ \textbf{Nota Técnica}}, coltitle=bordeNotaTecnica,
+    fonttitle=\sffamily, attach title to upper=\par\vspace{0.2em}}
+\newtcolorbox{AvisoNota}{
+    colback=bgNota, colframe=bgNota!80!black, boxrule=0.5pt, leftrule=4pt, arc=2pt,
+    title={\faInfoCircle\ \textbf{Nota}}, coltitle=black, fonttitle=\sffamily,
+    attach title to upper=\quad}
+\newtcolorbox{AlertaDefecto}{
+    colback=bgAdvertencia, colframe=red!80!black, boxrule=0.5pt, leftrule=4pt, arc=2pt,
+    title={\faBug\ \textbf{Hallazgo Crítico}}, coltitle=black, fonttitle=\sffamily,
+    attach title to upper=\par\vspace{0.2em}}
+\newtcolorbox{AlertaSeguridad}{
+    colback=bgAdvertencia, colframe=red!80!black, boxrule=0.5pt, leftrule=4pt, arc=2pt,
+    title={\faShield*\ \textbf{Alerta de Seguridad}}, coltitle=black, fonttitle=\sffamily,
+    attach title to upper=\par\vspace{0.2em}}
+\newtcolorbox{Veredicto}{
+    colback=white, colframe=bgPass, boxrule=1.2pt, arc=2pt,
+    title={\faCheckCircle\ \textbf{Veredicto de Aceptación}}, coltitle=bgPass,
+    fonttitle=\sffamily, attach title to upper=\par\vspace{0.2em}}
 
-% Cajas originales de advertencia preservadas
-\newtcolorbox{AlertaDefecto}{colback=white, colframe=bgFail, boxrule=1.2pt, arc=2pt, title={\faBug\ \textbf{Defecto Crítico Detectado}}, coltitle=bgFail, fonttitle=\sffamily, attach title to upper=\par\vspace{0.2em}}
+% =====================================================================
+% 10. LISTAS COMPACTAS Y CÓDIGO
+% =====================================================================
+\setlist[itemize]{noitemsep, topsep=2pt}
+\setlist[enumerate]{noitemsep, topsep=2pt}
+\newlist{checklist}{itemize}{1}
+\setlist[checklist]{label=$\square$, leftmargin=*, noitemsep}
+
+\lstdefinelanguage{JavaScript}{
+    keywords={typeof, new, true, false, catch, function, return, null, switch, var,
+        let, const, if, in, of, while, do, else, case, break, import, export, from,
+        await, async, class, extends, default, try, finally, throw, this, void},
+    keywordstyle=\color{codeKeyword}\bfseries,
+    ndkeywords={Promise, window, sessionStorage, localStorage, JSON, Math, Date, axios},
+    ndkeywordstyle=\color{c4Sistema}\bfseries,
+    comment=[l]{//}, morecomment=[s]{/*}{*/}, commentstyle=\color{codeComment}\itshape,
+    stringstyle=\color{codeString}, morestring=[b]', morestring=[b]", morestring=[b]`,
+    sensitive=true}
+\lstalias{TypeScript}{JavaScript}
+\lstdefinestyle{ethosCode}{
+    basicstyle=\ttfamily\fontsize{7.6}{9.2}\selectfont, extendedchars=true,
+    backgroundcolor=\color{grisTecnico}, keywordstyle=\color{codeKeyword}\bfseries,
+    commentstyle=\color{codeComment}\itshape, stringstyle=\color{codeString},
+    numbers=left, numberstyle=\tiny\color{grisISO}, numbersep=8pt,
+    frame=single, framesep=5pt, rulecolor=\color{grisISO!50},
+    breaklines=true, breakatwhitespace=true, showstringspaces=false, tabsize=2,
+    captionpos=b, aboveskip=0.6em, belowskip=0.6em,
+    literate=%
+        {á}{{\'a}}1 {é}{{\'e}}1 {í}{{\'i}}1 {ó}{{\'o}}1 {ú}{{\'u}}1
+        {Á}{{\'A}}1 {É}{{\'E}}1 {Í}{{\'I}}1 {Ó}{{\'O}}1 {Ú}{{\'U}}1
+        {ñ}{{\~n}}1 {Ñ}{{\~N}}1 {¿}{{?`}}1 {¡}{{!`}}1}
+\lstset{style=ethosCode}

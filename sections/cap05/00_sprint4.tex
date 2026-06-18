@@ -1,0 +1,621 @@
+% =============================================================================
+% CAPÍTULO 5 — PRUEBAS Y VALIDACIONES — SPRINT 4
+% =============================================================================
+\chapter{Pruebas y Validaciones — Sprint 4}
+\label{ch:sprint4}
+\resumenCapitulo{Verificación y validación del incremento de aseguramiento de calidad:
+visibilidad pública/privada del portafolio y protección con contraseña, refuerzo OWASP
+(\textit{rate limiting} y \textit{blacklist} de JWT), perfilado de consultas y purga de
+huérfanos, además de pruebas E2E, de accesibilidad y de usabilidad. Se documentan 40 casos
+de prueba y 10 defectos.}
+
+% =============================================================================
+\section{Alcance y Objetivos de V\&V del Sprint}
+\label{sec:s4-alcance}
+
+El Sprint 4 endureció el producto antes del lanzamiento. El objetivo de V\&V fue
+\textbf{validar la postura de seguridad reforzada y la calidad transversal}: que la
+visibilidad del portafolio se respete en todas las rutas, que los controles OWASP
+(limitación de tasa y revocación de tokens) operen, y que la interfaz cumpla criterios de
+accesibilidad y usabilidad en distintos dispositivos.
+
+\subsection{Funcionalidades y Componentes Evaluados}
+\label{sec:s4-funcionalidades}
+
+\begin{itemize}
+    \item \textbf{Visibilidad del portafolio:} estados público, privado y no listado;
+    acceso por \textit{slug} (\ruta{/api/portfolio/\{slug\}}) y exportación
+    (\ruta{/export}).
+    \item \textbf{Protección con contraseña:} portafolios privados accesibles solo con
+    contraseña verificada.
+    \item \textbf{Refuerzo OWASP:} \textit{rate limiting} por IP/usuario y \textit{blacklist}
+    de JWT para revocación efectiva en el \textit{logout}.
+    \item \textbf{Calidad de datos:} \textit{query profiling}, purga de registros huérfanos
+    y migraciones idempotentes.
+    \item \textbf{Privacidad del usuario:} baja de cuenta
+    (\ruta{/request-account-delete}) y exportación de datos personales
+    (\ruta{/export-data}).
+    \item \textbf{Moderación:} ocultar/restaurar perfiles reportados desde el panel de
+    administración.
+    \item \textbf{Calidad transversal:} pruebas E2E, accesibilidad WCAG AA, responsividad
+    \textit{cross-device} y prueba de usabilidad con usuarios.
+\end{itemize}
+
+\subsection{Criterios de Aceptación Globales del Sprint}
+\label{sec:s4-criterios}
+
+\vspace{0.1cm}
+\noindent
+\renewcommand{\arraystretch}{1.35}
+\fontsize{8.5}{10.2}\selectfont\sffamily
+\begin{tabularx}{\textwidth}{|>{\ttfamily\bfseries\color{colorPrimario}}p{2.0cm}|Y|c|}
+\hline
+\rowcolor{headerTabla}
+\sffamily\textbf{Criterio} & \sffamily\textbf{Descripción} & \sffamily\textbf{Estado} \\
+\hline
+CA-S4-01 & La visibilidad del portafolio se respeta en todas las rutas (incluida la exportación). & \bPass \\ \hline
+\rowcolor{grisTecnico}
+CA-S4-02 & La limitación de tasa frena los intentos de fuerza bruta. & \bPass \\ \hline
+CA-S4-03 & El cierre de sesión revoca el token de forma efectiva. & \bPass \\ \hline
+\rowcolor{grisTecnico}
+CA-S4-04 & La interfaz cumple WCAG 2.1 nivel AA (contraste, teclado, ARIA). & \bPass \\ \hline
+CA-S4-05 & La baja de cuenta purga los datos asociados, sin huérfanos. & \bPass \\ \hline
+CA-S4-06 & Ningún defecto crítico permanece abierto al cierre del sprint. & \bPass \\ \hline
+\end{tabularx}
+
+\begin{Veredicto}
+Los seis criterios se cumplieron. Los dos defectos críticos de seguridad
+(\comando{BUG-S4-001} y \comando{BUG-S4-002}) y la fuga de portafolio por exportación
+(\comando{BUG-S4-003}) se corrigieron y verificaron en la iteración.
+\end{Veredicto}
+
+% =============================================================================
+\clearpage
+\section{Trazabilidad de Requisitos}
+\label{sec:s4-trazabilidad}
+
+\subsection{Matriz de Trazabilidad (Historias de Perfil vs. Casos de Prueba)}
+\label{sec:s4-rtm}
+
+\begin{MatrizRTM}
+\rtmRow{RF-20}{Visibilidad pública/privada/no listada del portafolio}{TC-S4-001, TC-S4-002, TC-S4-015, TC-S4-016, TC-S4-029}{BUG-S4-005}
+\rtmRow{RF-21}{Protección del portafolio con contraseña}{TC-S4-003, TC-S4-009, TC-S4-017}{BUG-S4-003, BUG-S4-004}
+\rtmRow{RF-22}{Exportación de portafolio y de datos personales}{TC-S4-007, TC-S4-019, TC-S4-023}{BUG-S4-003}
+\rtmRow{RF-23}{Baja de cuenta con purga de datos}{TC-S4-022}{BUG-S4-008}
+\rtmRow{RF-24}{Moderación de perfiles (ocultar/restaurar)}{TC-S4-024, TC-S4-025}{—}
+\rtmRow{RNF-14}{Limitación de tasa (rate limiting)}{TC-S4-004, TC-S4-020, TC-S4-035, TC-S4-037}{BUG-S4-001}
+\rtmRow{RNF-15}{Revocación de JWT (blacklist) en logout}{TC-S4-005, TC-S4-006, TC-S4-021, TC-S4-036}{BUG-S4-002}
+\rtmRow{RNF-16}{Accesibilidad WCAG 2.1 AA}{TC-S4-010, TC-S4-011, TC-S4-012, TC-S4-013, TC-S4-032, TC-S4-033, TC-S4-034}{BUG-S4-006, BUG-S4-007}
+\rtmRow{RNF-17}{Responsividad cross-device}{TC-S4-031}{BUG-S4-009}
+\rtmRow{RNF-18}{Protección CSRF en operaciones de cambio}{TC-S4-038}{BUG-S4-010}
+\rtmRow{RNF-19}{Calidad de datos (profiling y purga)}{TC-S4-014, TC-S4-026, TC-S4-027, TC-S4-028}{—}
+\rtmRow{RNF-20}{Usabilidad y rendimiento del portafolio}{TC-S4-039, TC-S4-040}{—}
+\end{MatrizRTM}
+
+% =============================================================================
+\clearpage
+\section{Especificación y Diseño de Casos de Prueba}
+\label{sec:s4-casos}
+
+\subsection{Pruebas Unitarias y de Componentes}
+\label{sec:s4-unitarias}
+
+\begin{CatalogoTC}
+\tcRow{TC-S4-001}{Generación de slug único de portafolio}{Unitaria}{Alta}{\bFail}
+\tcRow{TC-S4-002}{Validación de estado de visibilidad}{Unitaria}{Alta}{\bPass}
+\tcRow{TC-S4-003}{Hash de la contraseña de portafolio}{Unitaria}{Alta}{\bFail}
+\tcRow{TC-S4-004}{Contador del rate limiter por IP/usuario}{Unitaria}{Alta}{\bPass}
+\tcRow{TC-S4-005}{Token en blacklist es rechazado}{Unitaria}{Crítica}{\bPass}
+\tcRow{TC-S4-006}{TTL de la blacklist igual a la expiración del token}{Unitaria}{Media}{\bPass}
+\tcRow{TC-S4-007}{Saneamiento de parámetros de exportación}{Unitaria}{Media}{\bPass}
+\tcRow{TC-S4-008}{Componente: toggle de visibilidad}{Componente}{Baja}{\bPass}
+\tcRow{TC-S4-009}{Componente: modal de contraseña de portafolio}{Componente}{Media}{\bPass}
+\tcRow{TC-S4-010}{Componente: roles ARIA en la barra de navegación}{Componente}{Alta}{\bPass}
+\tcRow{TC-S4-011}{Componente: contraste de color cumple AA}{Componente}{Alta}{\bFail}
+\tcRow{TC-S4-012}{Componente: navegación por teclado en el menú}{Componente}{Alta}{\bPass}
+\tcRow{TC-S4-013}{Componente: focus trap en el modal}{Componente}{Media}{\bFail}
+\tcRow{TC-S4-014}{Unidad: el perfilador detecta consultas lentas}{Unitaria}{Media}{\bPass}
+\end{CatalogoTC}
+
+\begin{FichaTC}{TC-S4-001}{Generación de slug único de portafolio}
+\tcMeta{Unitaria}{Alta}{\texttt{portfolio} · slug}{RF-20}
+\tcCampo{Precondiciones}{Existe un portafolio con \textit{slug} \texttt{ana-dev}.}
+\tcCampo{Datos de prueba}{Otro usuario con nombre que también deriva \texttt{ana-dev}.}
+\resetPasos
+\begin{tcPasos}
+\paso{Generar el slug para el segundo usuario.}{Debe producir un slug único (p. ej. \texttt{ana-dev-2}).}
+\paso{Verificar unicidad en la base de datos.}{No hay colisión.}
+\paso{Acceder a cada portafolio por su slug.}{Cada slug resuelve a su dueño.}
+\end{tcPasos}
+\tcResultado{Los slugs son únicos por colisión de nombres.}{El slug colisionaba y el
+segundo sobrescribía la ruta del primero. Ver \comando{BUG-S4-005}.}{\bFail}
+\end{FichaTC}
+
+\begin{FichaTC}{TC-S4-003}{La contraseña del portafolio se almacena con hash}
+\tcMeta{Unitaria}{Alta}{\texttt{portfolio} · seguridad}{RF-21}
+\tcCampo{Precondiciones}{Un portafolio privado se protege con contraseña.}
+\tcCampo{Datos de prueba}{Contraseña \texttt{"Secreto123\$"}.}
+\resetPasos
+\begin{tcPasos}
+\paso{Establecer la contraseña del portafolio.}{Se persiste un hash, no el texto plano.}
+\paso{Inspeccionar el valor almacenado.}{Debe ser un hash con sal (BCrypt).}
+\paso{Verificar el acceso comparando hash.}{La verificación usa el algoritmo de hash.}
+\end{tcPasos}
+\tcResultado{La contraseña se guarda y compara mediante hash.}{Se almacenaba y comparaba en
+texto plano. Ver \comando{BUG-S4-004}.}{\bFail}
+\end{FichaTC}
+
+\begin{FichaTC}{TC-S4-011}{El contraste de color cumple WCAG AA}
+\tcMeta{Componente}{Alta}{\texttt{frontend} · accesibilidad}{RNF-16}
+\tcCampo{Precondiciones}{Tema claro y oscuro de la interfaz.}
+\tcCampo{Datos de prueba}{Pares texto/fondo de botones primarios y secundarios.}
+\resetPasos
+\begin{tcPasos}
+\paso{Medir el ratio de contraste de cada par.}{Debe ser $\geq 4{,}5{:}1$ para texto normal.}
+\paso{Evaluar botones secundarios.}{Cumplen el umbral AA.}
+\paso{Repetir en modo oscuro.}{Cumple en ambos temas.}
+\end{tcPasos}
+\tcResultado{Todos los pares de color cumplen AA.}{Los botones secundarios tenían un ratio
+de 3,1:1. Ver \comando{BUG-S4-006}.}{\bFail}
+\end{FichaTC}
+
+\subsection{Pruebas de Integración (APIs, WebSockets, Servicios de Identidad)}
+\label{sec:s4-integracion}
+
+\begin{CatalogoTC}
+\tcRow{TC-S4-015}{GET /\{slug\} devuelve el portafolio público}{Integración}{Alta}{\bPass}
+\tcRow{TC-S4-016}{GET portafolio privado sin auth devuelve 401}{Integración}{Alta}{\bPass}
+\tcRow{TC-S4-017}{GET portafolio protegido con contraseña correcta}{Integración}{Alta}{\bPass}
+\tcRow{TC-S4-018}{PUT settings de portafolio aplica los cambios}{Integración}{Media}{\bPass}
+\tcRow{TC-S4-019}{GET /export genera la exportación}{Integración}{Alta}{\bFail}
+\tcRow{TC-S4-020}{Exceso de peticiones devuelve 429}{Integración}{Alta}{\bPass}
+\tcRow{TC-S4-021}{Logout revoca el token (siguiente uso 401)}{Integración}{Crítica}{\bFail}
+\tcRow{TC-S4-022}{request-account-delete purga los datos asociados}{Integración}{Alta}{\bFail}
+\tcRow{TC-S4-023}{GET export-data entrega los datos del usuario}{Integración}{Media}{\bPass}
+\tcRow{TC-S4-024}{Moderación oculta un perfil reportado}{Integración}{Media}{\bPass}
+\tcRow{TC-S4-025}{Restore recupera un perfil con soft-delete}{Integración}{Media}{\bPass}
+\tcRow{TC-S4-026}{El perfilado reporta consultas lentas}{Integración}{Media}{\bPass}
+\tcRow{TC-S4-027}{La purga elimina registros huérfanos}{Integración}{Media}{\bPass}
+\tcRow{TC-S4-028}{La migración es idempotente (doble ejecución)}{Integración}{Media}{\bPass}
+\end{CatalogoTC}
+
+\clearpage
+\begin{TablaAPI}
+\textbf{Endpoint} & \texttt{GET /api/portfolio/\{slug\}} \\ \hline
+Cabeceras & (público) o \texttt{X-Portfolio-Password} para portafolios protegidos \\ \hline
+\rowcolor{grisTecnico}
+Respuesta 200 & Portafolio público o privado con contraseña válida \\ \hline
+Respuesta 401/403 & Privado sin credenciales o contraseña incorrecta \\ \hline
+\rowcolor{grisTecnico}
+Límite de tasa & Más de 100 req/min por IP $\rightarrow$ \texttt{429 Too Many Requests} \\ \hline
+\end{TablaAPI}
+
+\begin{FichaTC}{TC-S4-021}{El cierre de sesión revoca el token (blacklist)}
+\tcMeta{Integración}{Crítica}{\texttt{security} · blacklist JWT}{RNF-15}
+\tcCampo{Precondiciones}{Usuario autenticado con un JWT vigente.}
+\tcCampo{Datos de prueba}{El mismo token antes y después del \textit{logout}.}
+\resetPasos
+\begin{tcPasos}
+\paso{Iniciar sesión y obtener el token.}{Token válido.}
+\paso{Cerrar sesión (logout).}{El token se añade a la blacklist.}
+\paso{Reutilizar el token en un endpoint protegido.}{Debe responder \texttt{401}.}
+\end{tcPasos}
+\tcResultado{El token revocado deja de ser válido tras el logout.}{El token seguía siendo
+aceptado tras el logout. Ver \comando{BUG-S4-002}.}{\bFail}
+\end{FichaTC}
+
+\begin{FichaTC}{TC-S4-019}{La exportación respeta la visibilidad del portafolio}
+\tcMeta{Integración}{Alta}{\texttt{portfolio} · export}{RF-22}
+\tcCampo{Precondiciones}{Portafolio privado protegido con contraseña.}
+\tcCampo{Datos de prueba}{\texttt{GET /api/portfolio/export} sin contraseña.}
+\resetPasos
+\begin{tcPasos}
+\paso{Solicitar la exportación sin la contraseña del portafolio.}{Debe responder \texttt{403}.}
+\paso{Solicitar con la contraseña correcta.}{Devuelve la exportación.}
+\paso{Verificar que el export no filtra contenido privado a anónimos.}{Sin fuga.}
+\end{tcPasos}
+\tcResultado{La exportación aplica la misma visibilidad que la vista.}{El export entregaba
+el portafolio privado sin pedir contraseña. Ver \comando{BUG-S4-003}.}{\bFail}
+\end{FichaTC}
+
+\begin{FichaTC}{TC-S4-022}{La baja de cuenta purga los datos asociados}
+\tcMeta{Integración}{Alta}{\texttt{profile} · privacidad}{RF-23}
+\tcCampo{Precondiciones}{Cuenta con portafolio, proyectos y evidencias subidas.}
+\tcCampo{Datos de prueba}{\texttt{POST /api/account/request-account-delete} + confirmación.}
+\resetPasos
+\begin{tcPasos}
+\paso{Solicitar y confirmar la baja de la cuenta.}{La cuenta se marca para purga.}
+\paso{Verificar la base de datos.}{Sin filas residuales del usuario.}
+\paso{Verificar el almacenamiento de evidencias.}{Sin archivos huérfanos del usuario.}
+\end{tcPasos}
+\tcResultado{La baja elimina datos y archivos del usuario.}{Quedaban evidencias huérfanas
+en el almacenamiento. Ver \comando{BUG-S4-008}.}{\bFail}
+\end{FichaTC}
+
+\begin{FichaTC}{TC-S4-015}{Acceso al portafolio público por slug}
+\tcMeta{Integración}{Alta}{\texttt{portfolio} · vista pública}{RF-20}
+\tcCampo{Precondiciones}{Portafolio publicado con slug \texttt{ana-dev}.}
+\tcCampo{Datos de prueba}{\texttt{GET /api/portfolio/ana-dev} sin autenticación.}
+\resetPasos
+\begin{tcPasos}
+\paso{Solicitar el portafolio público por su slug.}{HTTP \texttt{200} con el contenido público.}
+\paso{Verificar que no expone datos privados.}{Solo secciones marcadas como públicas.}
+\paso{Solicitar un slug inexistente.}{HTTP \texttt{404}.}
+\end{tcPasos}
+\tcResultado{El portafolio público es accesible por slug único.}{Conforme tras garantizar la
+unicidad del slug (\comando{BUG-S4-005}).}{\bPass}
+\end{FichaTC}
+
+\begin{FichaTC}{TC-S4-020}{El exceso de peticiones devuelve 429}
+\tcMeta{Integración}{Alta}{\texttt{security} · rate limiting}{RNF-14}
+\tcCampo{Precondiciones}{Limitador de tasa activo en la API.}
+\tcCampo{Datos de prueba}{Más de 100 peticiones por minuto desde una IP a un endpoint.}
+\resetPasos
+\begin{tcPasos}
+\paso{Emitir peticiones por debajo del umbral.}{Todas \texttt{200}.}
+\paso{Superar el umbral configurado.}{Respuestas \texttt{429 Too Many Requests}.}
+\paso{Esperar la ventana y reintentar.}{Se restablece el acceso.}
+\end{tcPasos}
+\tcResultado{La API limita la tasa con 429 al superar el umbral.}{Conforme; el limitador
+cubre las rutas sensibles tras \comando{BUG-S4-001}.}{\bPass}
+\end{FichaTC}
+
+\begin{FichaTC}{TC-S4-032}{Navegación completa por teclado}
+\tcMeta{Accesibilidad}{Alta}{\texttt{frontend} · WCAG AA}{RNF-16}
+\tcCampo{Precondiciones}{Aplicación cargada; sin uso del ratón.}
+\tcCampo{Datos de prueba}{Recorrido por menú, formularios y modales solo con teclado.}
+\resetPasos
+\begin{tcPasos}
+\paso{Tabular por los elementos interactivos.}{Orden de foco lógico y visible.}
+\paso{Operar menús y modales con teclado.}{Accesibles; foco retenido en el modal.}
+\paso{Cerrar el modal con \texttt{Esc}.}{Se cierra y devuelve el foco al disparador.}
+\end{tcPasos}
+\tcResultado{Toda la interacción es posible por teclado.}{Conforme tras añadir el
+\textit{focus trap} (\comando{BUG-S4-007}).}{\bPass}
+\end{FichaTC}
+
+\subsection{Pruebas de Sistema y UI/UX}
+\label{sec:s4-sistema}
+
+\begin{CatalogoTC}
+\tcRow{TC-S4-029}{Crear portafolio y publicarlo (UI E2E)}{Sistema}{Alta}{\bPass}
+\tcRow{TC-S4-030}{Visitante accede a portafolio público por slug}{Sistema}{Alta}{\bPass}
+\tcRow{TC-S4-031}{Responsividad en móvil, tablet y escritorio}{Sistema}{Alta}{\bFail}
+\tcRow{TC-S4-032}{Navegación completa por teclado}{Accesibilidad}{Alta}{\bPass}
+\tcRow{TC-S4-033}{El lector de pantalla anuncia los elementos}{Accesibilidad}{Alta}{\bPass}
+\tcRow{TC-S4-034}{Contraste AA en toda la interfaz}{Accesibilidad}{Alta}{\bFail}
+\tcRow{TC-S4-035}{Rate limiting frena la fuerza bruta de login}{Seguridad}{Crítica}{\bFail}
+\tcRow{TC-S4-036}{Token revocado no accede tras logout}{Seguridad}{Crítica}{\bFail}
+\tcRow{TC-S4-037}{Fuerza bruta de contraseña de portafolio acotada}{Seguridad}{Alta}{\bPass}
+\tcRow{TC-S4-038}{CSRF en cambio de settings es bloqueado}{Seguridad}{Alta}{\bFail}
+\tcRow{TC-S4-039}{Prueba de usabilidad (SUS) con 5 usuarios}{Usabilidad}{Media}{\bPass}
+\tcRow{TC-S4-040}{TTFB del portafolio público < 600 ms}{Rendimiento}{Media}{\bPass}
+\end{CatalogoTC}
+
+\clearpage
+\begin{FichaTC}{TC-S4-035}{La limitación de tasa frena la fuerza bruta de login}
+\tcMeta{Seguridad}{Crítica}{\texttt{security} · rate limiting}{RNF-14}
+\tcCampo{Precondiciones}{El endpoint de login está protegido por el limitador de tasa.}
+\tcCampo{Datos de prueba}{200 intentos de login fallidos desde la misma IP en un minuto.}
+\resetPasos
+\begin{tcPasos}
+\paso{Lanzar 200 intentos fallidos rápidos.}{Tras el umbral, responde \texttt{429}.}
+\paso{Verificar el bloqueo temporal.}{La IP queda limitada durante la ventana configurada.}
+\paso{Confirmar que un usuario legítimo no queda bloqueado por otra IP.}{Aislamiento por clave.}
+\end{tcPasos}
+\tcResultado{La fuerza bruta de login se frena con 429.}{El limitador no cubría
+\texttt{/login}. Ver \comando{BUG-S4-001}.}{\bFail}
+\end{FichaTC}
+
+\begin{FichaTC}{TC-S4-038}{Las operaciones de cambio están protegidas frente a CSRF}
+\tcMeta{Seguridad}{Alta}{\texttt{security} · CSRF}{RNF-18}
+\tcCampo{Precondiciones}{Usuario autenticado con sesión por cookie.}
+\tcCampo{Datos de prueba}{Petición \texttt{PUT settings} forjada desde un origen externo.}
+\resetPasos
+\begin{tcPasos}
+\paso{Forjar una petición de cambio desde otro origen.}{Debe rechazarse por falta de token CSRF.}
+\paso{Repetir con el token CSRF válido.}{Se aplica el cambio.}
+\paso{Verificar la cabecera/origen.}{Se valida origen y token.}
+\end{tcPasos}
+\tcResultado{Las operaciones de cambio exigen token CSRF.}{Faltaba protección CSRF en el
+cambio de settings. Ver \comando{BUG-S4-010}.}{\bFail}
+\end{FichaTC}
+
+\begin{FichaTC}{TC-S4-039}{Prueba de usabilidad con cinco usuarios (SUS)}
+\tcMeta{Usabilidad}{Media}{\texttt{frontend} · UX}{RNF-20}
+\tcCampo{Precondiciones}{5 participantes representativos (3 profesionales, 2 reclutadores).}
+\tcCampo{Datos de prueba}{Guion de 6 tareas (registro, crear portafolio, publicar, buscar
+candidato, chatear, exportar CV) y cuestionario SUS.}
+\resetPasos
+\begin{tcPasos}
+\paso{Ejecutar las tareas con cada participante.}{Tasa de finalización registrada.}
+\paso{Recoger el cuestionario SUS.}{Puntuación promedio calculada.}
+\paso{Analizar incidencias de usabilidad.}{Se priorizan hallazgos.}
+\end{tcPasos}
+\tcResultado{SUS $\geq 75$ (bueno) y finalización $\geq 90\%$.}{SUS = 82; finalización =
+93\%. Se registraron hallazgos menores derivados a \comando{BUG-S4-009}.}{\bPass}
+\end{FichaTC}
+
+\begin{FichaTC}{TC-S4-036}{Un token revocado no accede tras el logout}
+\tcMeta{Seguridad}{Crítica}{\texttt{security} · blacklist JWT}{RNF-15}
+\tcCampo{Precondiciones}{Sesión iniciada con un JWT vigente.}
+\tcCampo{Datos de prueba}{El mismo token tras cerrar sesión.}
+\resetPasos
+\begin{tcPasos}
+\paso{Cerrar sesión.}{El token entra en la blacklist.}
+\paso{Reutilizar el token en cualquier endpoint protegido.}{HTTP \texttt{401}.}
+\paso{Verificar el TTL de la blacklist.}{Igual a la expiración del token.}
+\end{tcPasos}
+\tcResultado{El token revocado deja de funcionar de inmediato.}{Conforme tras consultar la
+blacklist en el filtro (\comando{BUG-S4-002}).}{\bPass}
+\end{FichaTC}
+
+\begin{FichaTC}{TC-S4-040}{El TTFB del portafolio público es inferior a 600 ms}
+\tcMeta{Rendimiento}{Media}{\texttt{portfolio} · vista pública}{RNF-20}
+\tcCampo{Precondiciones}{Portafolio público con secciones completas en staging.}
+\tcCampo{Datos de prueba}{50 solicitudes a \texttt{GET /api/portfolio/\{slug\}}.}
+\resetPasos
+\begin{tcPasos}
+\paso{Solicitar el portafolio repetidamente.}{Respuestas \texttt{200}.}
+\paso{Medir el TTFB (tiempo hasta el primer byte).}{Por debajo de 600 ms.}
+\paso{Registrar p50 y p95.}{p50 = 240 ms; p95 = 510 ms.}
+\end{tcPasos}
+\tcResultado{El TTFB del portafolio público se mantiene bajo 600 ms.}{Conforme.}{\bPass}
+\end{FichaTC}
+
+% =============================================================================
+\clearpage
+\section{Ejecución de Pruebas (Test Logs)}
+\label{sec:s4-ejecucion}
+
+\subsection{Resumen de Ejecución (Planificadas vs. Ejecutadas)}
+\label{sec:s4-resumen}
+
+\vspace{0.1cm}
+\noindent
+\renewcommand{\arraystretch}{1.35}
+\fontsize{8.5}{10.2}\selectfont\sffamily
+\begin{tabularx}{\textwidth}{|>{\bfseries\color{colorPrimario}}p{4.6cm}|c|Y|}
+\hline
+\rowcolor{headerTabla}
+\sffamily\textbf{Categoría} & \sffamily\textbf{Cant.} & \sffamily\textbf{Observación} \\
+\hline
+Casos planificados & 40 & Diseñados al inicio del sprint. \\ \hline
+\rowcolor{grisTecnico}
+Casos ejecutados & 40 & 100\% de ejecución. \\ \hline
+Casos aprobados (PASS) & 30 & 75,0\% de tasa de aprobación. \\ \hline
+\rowcolor{grisTecnico}
+Casos fallidos (FAIL) & 10 & Generaron reporte de defecto. \\ \hline
+Casos bloqueados (BLOCK) & 0 & Sin bloqueos. \\ \hline
+\end{tabularx}
+
+\vspace{0.3cm}
+\graficoEjecucion{30}{10}{0}{40}
+
+\subsection{Entornos y Datos de Prueba Utilizados}
+\label{sec:s4-datos}
+
+\vspace{0.1cm}
+\noindent
+\renewcommand{\arraystretch}{1.3}
+\fontsize{8.5}{10.2}\selectfont\sffamily
+\begin{tabularx}{\textwidth}{|>{\ttfamily}p{4.8cm}|Y|}
+\hline
+\rowcolor{headerTabla}
+\sffamily\textbf{Dato / herramienta} & \sffamily\textbf{Uso} \\
+\hline
+ana-dev / ana-dev (colisión) & Verificación de unicidad de slug. \\ \hline
+\rowcolor{grisTecnico}
+200 logins fallidos / 1 IP & Prueba de rate limiting (fuerza bruta). \\ \hline
+axe-core / contrast checker & Auditoría de accesibilidad WCAG AA. \\ \hline
+\rowcolor{grisTecnico}
+Móvil 375px / Tablet 768px / Desktop 1440px & Pruebas cross-device. \\ \hline
+Cuestionario SUS (5 usuarios) & Prueba de usabilidad. \\ \hline
+\end{tabularx}
+
+\begin{NotaTecnica}
+La auditoría de accesibilidad combinó verificación automática (axe-core) y revisión manual
+con lector de pantalla, navegación por teclado y medición de contraste, conforme a WCAG 2.1
+nivel AA.
+\end{NotaTecnica}
+
+% =============================================================================
+\clearpage
+\section{Reporte de Anomalías y Bugs (Bug Reports)}
+\label{sec:s4-bugs}
+
+\subsection{Registro Detallado de Defectos}
+\label{sec:s4-registro}
+
+\begin{FichaBug}{BUG-S4-001}{El rate limiting no protegía el endpoint de login}
+\bugMeta{\sevCrit}{P1}{\texttt{security} · rate limiting}{\resCerrado}
+\bugCampo{Entorno}{Backend perfil \texttt{prod}; staging.}
+\bugBloque{Pasos para reproducir}{1. Lanzar 200 intentos de login fallidos desde una IP.
+2. Observar las respuestas.}
+\bugCampo{Resultado esperado}{Bloqueo temporal con \texttt{429} tras el umbral.}
+\bugCampo{Resultado real}{Todos los intentos se procesaban (fuerza bruta viable).}
+\bugBloque{Evidencia técnica}{\texttt{200x POST /api/v1/auth/login $\rightarrow$ 401;
+ninguna respuesta 429.}}
+\bugBloque{Análisis de causa raíz (RCA)}{El filtro de limitación se aplicaba a la API
+general pero excluía la ruta de autenticación. \textbf{Corrección:} se incluyó
+\texttt{/login} y \texttt{/forgot-password} en el limitador con clave por IP y por correo.
+Verificado por \comando{TC-S4-035}.}
+\end{FichaBug}
+
+\begin{FichaBug}{BUG-S4-002}{La blacklist de JWT no se consultaba tras el logout}
+\bugMeta{\sevCrit}{P1}{\texttt{security} · blacklist JWT}{\resCerrado}
+\bugCampo{Entorno}{Backend perfil \texttt{prod}.}
+\bugBloque{Pasos para reproducir}{1. Login y obtener token. 2. Logout. 3. Reutilizar el
+token.}
+\bugCampo{Resultado esperado}{\texttt{401} (token revocado).}
+\bugCampo{Resultado real}{\texttt{200}: el token revocado seguía siendo aceptado hasta su
+expiración natural.}
+\bugBloque{Análisis de causa raíz (RCA)}{El \textit{logout} añadía el token a la blacklist,
+pero el filtro de autenticación no la consultaba. \textbf{Corrección:} el filtro verifica la
+blacklist (con TTL igual a la expiración del token) antes de autenticar. Verificado por
+\comando{TC-S4-021} y \comando{TC-S4-036}.}
+\end{FichaBug}
+
+\begin{FichaBug}{BUG-S4-003}{La exportación expone portafolios privados sin contraseña}
+\bugMeta{\sevCrit}{P1}{\texttt{portfolio} · export}{\resCerrado}
+\bugCampo{Entorno}{Backend perfil \texttt{prod}.}
+\bugBloque{Pasos para reproducir}{1. Crear portafolio privado con contraseña. 2. Llamar a
+\comando{GET /api/portfolio/export} sin contraseña.}
+\bugCampo{Resultado esperado}{\texttt{403}.}
+\bugCampo{Resultado real}{La exportación devolvía el portafolio privado completo.}
+\bugBloque{Análisis de causa raíz (RCA)}{La ruta de exportación no reutilizaba el control de
+visibilidad de la vista. \textbf{Corrección:} se centralizó la comprobación de visibilidad
+y contraseña en un único guardia aplicado a vista y exportación. Verificado por
+\comando{TC-S4-019}.}
+\end{FichaBug}
+
+\begin{FichaBug}{BUG-S4-004}{La contraseña de portafolio se comparaba en texto plano}
+\bugMeta{\sevAlt}{P2}{\texttt{portfolio} · seguridad}{\resCerrado}
+\bugCampo{Entorno}{Backend perfil \texttt{prod}.}
+\bugBloque{Pasos para reproducir}{1. Establecer la contraseña del portafolio. 2. Inspeccionar
+el valor almacenado.}
+\bugCampo{Resultado esperado}{Hash con sal.}
+\bugCampo{Resultado real}{Texto plano en la base de datos.}
+\bugBloque{Análisis de causa raíz (RCA)}{Se persistía la contraseña directamente.
+\textbf{Corrección:} hash BCrypt al guardar y comparación por hash al verificar. Verificado
+por \comando{TC-S4-003}.}
+\end{FichaBug}
+
+\begin{FichaBug}{BUG-S4-005}{Colisión de slug sobrescribe la ruta de otro portafolio}
+\bugMeta{\sevAlt}{P2}{\texttt{portfolio} · slug}{\resCerrado}
+\bugCampo{Entorno}{Backend perfil \texttt{prod}.}
+\bugBloque{Pasos para reproducir}{1. Dos usuarios con nombres que derivan el mismo slug. 2.
+Acceder por slug.}
+\bugCampo{Resultado esperado}{Slugs únicos.}
+\bugCampo{Resultado real}{El segundo slug colisionaba y resolvía al portafolio equivocado.}
+\bugBloque{Análisis de causa raíz (RCA)}{La generación no garantizaba unicidad.
+\textbf{Corrección:} sufijo incremental y restricción única en base de datos. Verificado por
+\comando{TC-S4-001}.}
+\end{FichaBug}
+
+\begin{FichaBug}{BUG-S4-006}{Contraste insuficiente en botones secundarios (AA)}
+\bugMeta{\sevMed}{P3}{\texttt{frontend} · accesibilidad}{\resCerrado}
+\bugCampo{Entorno}{Frontend React 18 / Tailwind; auditoría axe-core.}
+\bugBloque{Pasos para reproducir}{1. Medir el contraste de los botones secundarios. 2.
+Comparar con el umbral AA.}
+\bugCampo{Resultado esperado}{Ratio $\geq 4{,}5{:}1$.}
+\bugCampo{Resultado real}{Ratio 3,1:1.}
+\bugBloque{Análisis de causa raíz (RCA)}{Tono de gris demasiado claro sobre fondo blanco.
+\textbf{Corrección:} ajuste de la paleta secundaria a un tono conforme AA en ambos temas.
+Verificado por \comando{TC-S4-011} y \comando{TC-S4-034}.}
+\end{FichaBug}
+
+\begin{FichaBug}{BUG-S4-007}{El modal no atrapaba el foco del teclado}
+\bugMeta{\sevMed}{P3}{\texttt{frontend} · accesibilidad}{\resCerrado}
+\bugCampo{Entorno}{Frontend React 18.}
+\bugBloque{Pasos para reproducir}{1. Abrir un modal. 2. Tabular repetidamente.}
+\bugCampo{Resultado esperado}{El foco permanece dentro del modal.}
+\bugCampo{Resultado real}{El foco escapaba hacia el contenido de fondo.}
+\bugBloque{Análisis de causa raíz (RCA)}{Faltaba \textit{focus trap}. \textbf{Corrección:}
+se añadió retención de foco y cierre con \texttt{Esc}. Verificado por \comando{TC-S4-013}.}
+\end{FichaBug}
+
+\begin{FichaBug}{BUG-S4-008}{La baja de cuenta no purgaba las evidencias subidas}
+\bugMeta{\sevAlt}{P2}{\texttt{profile} · purga}{\resCerrado}
+\bugCampo{Entorno}{Backend perfil \texttt{prod}; almacenamiento de evidencias.}
+\bugBloque{Pasos para reproducir}{1. Subir evidencias. 2. Dar de baja la cuenta. 3. Revisar
+el almacenamiento.}
+\bugCampo{Resultado esperado}{Sin archivos del usuario.}
+\bugCampo{Resultado real}{Las evidencias quedaban huérfanas en el almacenamiento.}
+\bugBloque{Análisis de causa raíz (RCA)}{La purga cubría la base de datos pero no el
+almacenamiento de objetos. \textbf{Corrección:} el proceso de baja elimina también los
+objetos asociados. Verificado por \comando{TC-S4-022}.}
+\end{FichaBug}
+
+\begin{FichaBug}{BUG-S4-009}{La barra lateral tapa el contenido en tablet}
+\bugMeta{\sevMed}{P3}{\texttt{frontend} · responsividad}{\resCerrado}
+\bugCampo{Entorno}{Frontend React 18; viewport 768px.}
+\bugBloque{Pasos para reproducir}{1. Abrir el dashboard en tablet. 2. Observar el layout.}
+\bugCampo{Resultado esperado}{La barra lateral colapsa o no solapa el contenido.}
+\bugCampo{Resultado real}{La barra fija solapaba parte del contenido principal.}
+\bugBloque{Análisis de causa raíz (RCA)}{Punto de quiebre intermedio no contemplado.
+\textbf{Corrección:} se añadió el \textit{breakpoint} de tablet con barra colapsable.
+Verificado por \comando{TC-S4-031}.}
+\end{FichaBug}
+
+\begin{FichaBug}{BUG-S4-010}{Falta de protección CSRF en el cambio de settings}
+\bugMeta{\sevAlt}{P2}{\texttt{security} · CSRF}{\resCerrado}
+\bugCampo{Entorno}{Backend perfil \texttt{prod}.}
+\bugBloque{Pasos para reproducir}{1. Forjar un \comando{PUT settings} desde otro origen. 2.
+Observar el resultado.}
+\bugCampo{Resultado esperado}{Rechazo por falta de token CSRF.}
+\bugCampo{Resultado real}{La petición forjada se aplicaba.}
+\bugBloque{Análisis de causa raíz (RCA)}{Las operaciones con cookie de sesión no exigían
+token CSRF. \textbf{Corrección:} token CSRF en operaciones de cambio y validación de origen.
+Verificado por \comando{TC-S4-038}.}
+\end{FichaBug}
+
+\subsection{Estado de Resolución y Resultados de Retesteo}
+\label{sec:s4-retesteo}
+
+\vspace{0.1cm}
+\noindent
+\renewcommand{\arraystretch}{1.3}
+\fontsize{8.5}{10.2}\selectfont\sffamily
+\begin{tabularx}{\textwidth}{|>{\ttfamily\bfseries\color{colorPrimario}}p{2.0cm}|c|>{\centering\arraybackslash}p{2.0cm}|>{\ttfamily}p{2.2cm}|Y|}
+\hline
+\rowcolor{headerTabla}
+\sffamily\textbf{ID} & \sffamily\textbf{Sev.} & \sffamily\textbf{Estado} & \sffamily\textbf{Retest} & \sffamily\textbf{Resultado} \\
+\hline
+BUG-S4-001 & \sevCrit & \resCerrado & TC-S4-035 & \bPass \\ \hline
+\rowcolor{grisTecnico}
+BUG-S4-002 & \sevCrit & \resCerrado & TC-S4-021 & \bPass \\ \hline
+BUG-S4-003 & \sevCrit & \resCerrado & TC-S4-019 & \bPass \\ \hline
+\rowcolor{grisTecnico}
+BUG-S4-004 & \sevAlt & \resCerrado & TC-S4-003 & \bPass \\ \hline
+BUG-S4-005 & \sevAlt & \resCerrado & TC-S4-001 & \bPass \\ \hline
+\rowcolor{grisTecnico}
+BUG-S4-006 & \sevMed & \resCerrado & TC-S4-011 & \bPass \\ \hline
+BUG-S4-007 & \sevMed & \resCerrado & TC-S4-013 & \bPass \\ \hline
+\rowcolor{grisTecnico}
+BUG-S4-008 & \sevAlt & \resCerrado & TC-S4-022 & \bPass \\ \hline
+BUG-S4-009 & \sevMed & \resCerrado & TC-S4-031 & \bPass \\ \hline
+\rowcolor{grisTecnico}
+BUG-S4-010 & \sevAlt & \resCerrado & TC-S4-038 & \bPass \\ \hline
+\end{tabularx}
+
+% =============================================================================
+\clearpage
+\section{Reporte de Validación y Aprobación del Sprint}
+\label{sec:s4-validacion}
+
+\subsection{Métricas de Calidad del Sprint}
+\label{sec:s4-metricas}
+
+\barraCobertura{85}{Cobertura de líneas del backend (\texttt{security}, \texttt{portfolio}, \texttt{admin})}
+\barraCobertura{80}{Cobertura de ramas del backend (controles OWASP)}
+\barraCobertura{74}{Cobertura de componentes del frontend (accesibilidad y responsividad)}
+
+\vspace{0.2cm}
+\noindent
+\renewcommand{\arraystretch}{1.35}
+\fontsize{8.5}{10.2}\selectfont\sffamily
+\begin{tabularx}{\textwidth}{|>{\bfseries\color{colorPrimario}}p{6.0cm}|c|Y|}
+\hline
+\rowcolor{headerTabla}
+\sffamily\textbf{Métrica} & \sffamily\textbf{Valor} & \sffamily\textbf{Meta} \\
+\hline
+Tasa de aprobación de casos & 75,0\% & $\geq 75\%$ \\ \hline
+\rowcolor{grisTecnico}
+Densidad de defectos (def./caso) & 0,250 & $\leq 0,30$ \\ \hline
+Defectos críticos abiertos al cierre & 0 & 0 \\ \hline
+\rowcolor{grisTecnico}
+Defectos resueltos y verificados & 10 / 10 & 100\% \\ \hline
+Puntuación SUS de usabilidad & 82 & $\geq 75$ \\ \hline
+\end{tabularx}
+
+\subsection{Conclusión de Aceptación}
+\label{sec:s4-conclusion}
+
+\begin{Veredicto}
+\textbf{Sprint 4 — APROBADO.} El endurecimiento de seguridad cumplió su objetivo: los 3
+defectos críticos (rate limiting de login, revocación de JWT y fuga de portafolio por
+exportación) fueron corregidos y verificados. La interfaz alcanzó conformidad WCAG 2.1 AA y
+una puntuación SUS de 82. El producto queda en condiciones de seguridad y calidad para el
+cierre de versión en el Sprint 5.
+\end{Veredicto}

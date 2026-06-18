@@ -1,0 +1,247 @@
+% =============================================================================
+% CAPÍTULO 7 — CONCLUSIONES GLOBALES Y MÉTRICAS FINALES
+% =============================================================================
+\chapter{Conclusiones Globales y Métricas Finales}
+\label{ch:conclusiones}
+\resumenCapitulo{Consolidación de los resultados de verificación y validación de los cinco
+sprints: calidad del producto final de la Release 2.0.0, evaluación de la deuda técnica
+acumulada y cierre formal con las firmas de aprobación del equipo de aseguramiento de
+calidad.}
+
+% =============================================================================
+\section{Resumen de Calidad del Producto Final (Versión Release)}
+\label{sec:concl-resumen}
+
+A lo largo de las cinco iteraciones se diseñaron y ejecutaron \textbf{200 casos de prueba}
+(40 por sprint) y se registraron \textbf{48 defectos} documentados con calidad forense. La
+totalidad de los defectos fue corregida y verificada dentro de su iteración, lo que arroja
+una \textbf{eficiencia de remoción de defectos del 100\%} y \textbf{cero defectos críticos
+abiertos} al cierre de la versión.
+
+\subsection{Consolidado de Ejecución por Sprint}
+
+\vspace{0.1cm}
+\begin{center}
+\renewcommand{\arraystretch}{1.35}
+\fontsize{8.5}{10.2}\selectfont\sffamily
+\begin{tabular}{|c|c|c|c|c|c|c|}
+\hline
+\rowcolor{headerTabla}
+\sffamily\textbf{Sprint} & \sffamily\textbf{Plan.} & \sffamily\textbf{Ejec.} & \sffamily\textbf{PASS} & \sffamily\textbf{FAIL} & \sffamily\textbf{Aprob.} & \sffamily\textbf{Defectos} \\
+\hline
+Sprint 1 & 40 & 40 & 33 & 6 & 82,5\% & 9 \\ \hline
+\rowcolor{grisTecnico}
+Sprint 2 & 40 & 40 & 32 & 8 & 80,0\% & 9 \\ \hline
+Sprint 3 & 40 & 40 & 29 & 11 & 72,5\% & 11 \\ \hline
+\rowcolor{grisTecnico}
+Sprint 4 & 40 & 40 & 30 & 10 & 75,0\% & 10 \\ \hline
+Sprint 5 & 40 & 40 & 31 & 9 & 77,5\% & 9 \\ \hline
+\rowcolor{headerTabla}
+\sffamily\textbf{Total} & \sffamily\textbf{200} & \sffamily\textbf{200} & \sffamily\textbf{155} & \sffamily\textbf{44} & \sffamily\textbf{77,5\%} & \sffamily\textbf{48} \\ \hline
+\end{tabular}
+\end{center}
+
+\begin{NotaTecnica}
+La columna \textbf{Aprob.} es la tasa de aprobación en la \textit{primera} ejecución. Tras
+el retesteo de los defectos corregidos, los 44 casos en estado FAIL pasaron a PASS, de modo
+que la \textbf{tasa de aprobación efectiva al cierre de cada sprint fue del 100\%} (un caso,
+TC-S1-039, estuvo temporalmente bloqueado y se verificó tras corregir su dependencia).
+\end{NotaTecnica}
+
+\subsection{Tendencia de la Tasa de Aprobación}
+
+La figura muestra la evolución de la tasa de aprobación en primera ejecución. El valle del
+Sprint 3 corresponde a la mayor superficie de integración externa y seguridad, recuperado
+en los sprints posteriores gracias al refuerzo OWASP del Sprint 4.
+
+\begin{center}
+\begin{tikzpicture}[font=\sffamily\scriptsize]
+  \def\h{4.0}
+  \draw[grisISO,->] (0,0) -- (11,0) node[right]{Sprint};
+  \draw[grisISO,->] (0,0) -- (0,\h) node[above]{\% aprobación};
+  \foreach \y/\lbl in {0/0,1.25/50,2.0/70,2.5/80,3.0/90}{\draw[grisISO!40] (0,\y*\h/3.5) -- (10.5,\y*\h/3.5); \node[left,text=grisISO,font=\sffamily\tiny] at (0,\y*\h/3.5) {\lbl};}
+  % puntos: 82.5, 80, 72.5, 75, 77.5  (escala: %/90*h aprox -> usar y=val/100*h/0.95)
+  \def\sx{2.0}
+  \coordinate (p1) at (1,{82.5/100*\h});
+  \coordinate (p2) at (3,{80.0/100*\h});
+  \coordinate (p3) at (5,{72.5/100*\h});
+  \coordinate (p4) at (7,{75.0/100*\h});
+  \coordinate (p5) at (9,{77.5/100*\h});
+  \draw[colorPrimario,very thick] (p1)--(p2)--(p3)--(p4)--(p5);
+  \foreach \p/\lbl/\v in {p1/S1/82{,}5,p2/S2/80{,}0,p3/S3/72{,}5,p4/S4/75{,}0,p5/S5/77{,}5}{
+    \fill[colorAcento] (\p) circle (2.2pt);
+    \node[below=5pt,text=grisISO,font=\sffamily\tiny] at (\p) {\lbl};
+    \node[above=3pt,text=colorPrimario,font=\sffamily\tiny\bfseries] at (\p) {\v\%};}
+\end{tikzpicture}
+\end{center}
+
+\clearpage
+\subsection{Distribución Global de Defectos por Severidad}
+
+\vspace{0.1cm}
+\noindent
+\renewcommand{\arraystretch}{1.35}
+\fontsize{8.5}{10.2}\selectfont\sffamily
+\begin{tabularx}{\textwidth}{|Z|Z|Z|Z|Z|Z|Z|Z|}
+\hline
+\rowcolor{headerTabla}
+\sffamily\textbf{Severidad} & \sffamily S1 & \sffamily S2 & \sffamily S3 & \sffamily S4 & \sffamily S5 & \sffamily\textbf{Total} & \sffamily\textbf{\% del total} \\
+\hline
+\sevCrit & 2 & 1 & 3 & 3 & 3 & 12 & 25,0\% \\ \hline
+\rowcolor{grisTecnico}
+\sevAlt & 3 & 3 & 4 & 4 & 2 & 16 & 33,3\% \\ \hline
+\sevMed & 3 & 4 & 4 & 3 & 3 & 17 & 35,4\% \\ \hline
+\rowcolor{grisTecnico}
+\sevBaj & 1 & 1 & 0 & 0 & 1 & 3 & 6,3\% \\ \hline
+\rowcolor{headerTabla}
+\sffamily\textbf{Total} & 9 & 9 & 11 & 10 & 9 & \sffamily\textbf{48} & \sffamily\textbf{100\%} \\ \hline
+\end{tabularx}
+
+\vspace{0.3cm}
+\noindent La concentración de defectos críticos en los sprints 3, 4 y 5 es coherente con la
+incorporación de la superficie de integración externa, los controles OWASP y el panel de
+administración; en todos los casos fueron de seguridad (control de acceso, SSRF, XSS,
+revocación de tokens y exposición de secretos) y se resolvieron antes del cierre.
+
+\subsection{Defectos por Componente (Mapa de Calor)}
+
+\vspace{0.1cm}
+\noindent
+\renewcommand{\arraystretch}{1.3}
+\fontsize{8.5}{10.2}\selectfont\sffamily
+\begin{tabularx}{\textwidth}{|>{\ttfamily\bfseries\color{colorPrimario}}l|c|Y|}
+\hline
+\rowcolor{headerTabla}
+\sffamily\textbf{Componente} & \sffamily\textbf{Defectos} & \sffamily\textbf{Observación} \\
+\hline
+security & 8 & JWT, rate limiting, blacklist, CSRF: foco principal de hallazgos críticos. \\ \hline
+\rowcolor{grisTecnico}
+frontend & 11 & Accesibilidad, estado, i18n, tema y persistencia de UI. \\ \hline
+auth & 5 & Registro, OTP, OAuth sync y enumeración de usuarios. \\ \hline
+\rowcolor{grisTecnico}
+connections & 3 & SSRF y ciclo de vida de tokens de proveedor. \\ \hline
+chat / cvstudio & 5 & Aislamiento de canales, idempotencia, timeouts e IA. \\ \hline
+\rowcolor{grisTecnico}
+portfolio & 4 & Visibilidad, slug y protección con contraseña. \\ \hline
+skills / experience & 6 & IDOR, integridad referencial, validaciones de dominio. \\ \hline
+\rowcolor{grisTecnico}
+admin / metrics & 4 & Control de acceso, logs y rendimiento del dashboard. \\ \hline
+db / uploads & 2 & Seeders, índices y validación de contenido. \\ \hline
+\end{tabularx}
+
+\subsection{Cobertura de Pruebas Consolidada}
+
+\barraCobertura{82}{Cobertura media de líneas del backend (Java / jOOQ)}
+\barraCobertura{77}{Cobertura media de ramas del backend (validaciones y seguridad)}
+\barraCobertura{70}{Cobertura media de componentes del frontend (Vitest + Testing Library)}
+
+\vspace{0.2cm}
+\noindent La cobertura se mantuvo por encima de los umbrales mínimos acordados (80\% de
+líneas en backend y 65\% de componentes en frontend) en todos los sprints, complementada por
+la verificación estática (ESLint y TypeScript estricto) como primera línea de defensa.
+
+\subsection{Lecciones Aprendidas del Proceso de V\&V}
+
+El análisis transversal de los 48 defectos arroja patrones útiles para el mantenimiento y
+para futuros proyectos del equipo:
+
+\begin{itemize}
+    \item \textbf{La seguridad concentra el riesgo real.} El 25\% de los defectos fueron
+    críticos y todos de seguridad (control de acceso, SSRF, XSS, tokens). Adelantar las
+    pruebas de seguridad a la fase de diseño habría reducido su coste de corrección.
+    \item \textbf{La superficie externa es la más frágil.} Las integraciones (conexiones,
+    subida de archivos, IA, tiempo real) generaron la mayor densidad de defectos del
+    proyecto (Sprint 3), confirmando el valor de las pruebas basadas en riesgo.
+    \item \textbf{Las pruebas con dependencias reales detectan más.} Testcontainers reveló
+    defectos de integridad (cascadas, índices, N+1) que una base de datos en memoria habría
+    ocultado.
+    \item \textbf{El control de acceso debe probarse por rol y por propietario.} Los IDOR y
+    la fuga de métricas se detectaron solo al probar explícitamente accesos cruzados.
+    \item \textbf{La calidad transversal (a11y, i18n) requiere verificación automatizada.}
+    Los defectos de accesibilidad e internacionalización motivaron incorporar comprobaciones
+    en CI (deuda DT-02 y DT-04).
+\end{itemize}
+
+% =============================================================================
+\clearpage
+\section{Evaluación de la Deuda Técnica Acumulada}
+\label{sec:concl-deuda}
+
+Aunque no quedaron defectos críticos ni altos abiertos, la V\&V identificó elementos de
+\textbf{deuda técnica} y mejoras diferidas que, sin bloquear la \textit{Release} 2.0.0, se
+recomienda atender en el mantenimiento evolutivo. Ninguno representa un riesgo de seguridad
+residual.
+
+\vspace{0.1cm}
+\noindent
+\renewcommand{\arraystretch}{1.3}
+\fontsize{8.5}{10.2}\selectfont\sffamily
+\begin{tabularx}{\textwidth}{|>{\ttfamily\bfseries\color{colorPrimario}}p{1.8cm}|Y|c|}
+\hline
+\rowcolor{headerTabla}
+\sffamily\textbf{ID} & \sffamily\textbf{Descripción de la deuda / mejora diferida} & \sffamily\textbf{Prioridad} \\
+\hline
+DT-01 & Ampliar la cobertura E2E automatizada (hoy parcialmente manual) con una suite de extremo a extremo en CI. & \sevMed \\ \hline
+\rowcolor{grisTecnico}
+DT-02 & Externalizar la verificación de cobertura i18n a una validación de CI que falle ante claves faltantes. & \sevMed \\ \hline
+DT-03 & Incorporar pruebas de carga sostenida (más allá del rendimiento puntual) sobre chat y dashboards. & \sevMed \\ \hline
+\rowcolor{grisTecnico}
+DT-04 & Auditoría de accesibilidad por un tercero independiente para certificación WCAG AA formal. & \sevBaj \\ \hline
+DT-05 & Monitorización continua de SSRF/egress con lista de permitidos centralizada y observabilidad. & \sevMed \\ \hline
+\rowcolor{grisTecnico}
+DT-06 & Telemetría de errores en producción (correlación de \textit{stacktraces}) para acelerar el RCA. & \sevBaj \\ \hline
+DT-07 & Migrar las pruebas de seguridad ad-hoc (SQLi, XSS, JWT) a una suite DAST recurrente. & \sevMed \\ \hline
+\end{tabularx}
+
+\vspace{0.3cm}
+\noindent\textbf{Riesgos residuales aceptados.} Los servicios externos (Supabase, Gemini,
+Google Drive) quedan gobernados por sus respectivos SLA; su disponibilidad y seguridad
+internas están fuera del control directo de Byte Busters S.R.L. y se mitigan con
+degradación elegante, \textit{timeouts} y validación de egress.
+
+\begin{AvisoNota}
+La deuda técnica listada se incorporó al \textit{Product Backlog} de mantenimiento. Ningún
+elemento condiciona la aceptación de la \textit{Release} 2.0.0: todos son mejoras de
+robustez, observabilidad o automatización del proceso de calidad.
+\end{AvisoNota}
+
+% =============================================================================
+\clearpage
+\section{Cierre y Firmas de Aprobación}
+\label{sec:concl-cierre}
+
+Sobre la base de la evidencia consolidada —200 casos ejecutados, 48 defectos remediados al
+100\%, cero defectos críticos abiertos, cobertura por encima de umbrales y regresión final
+en verde— el equipo de aseguramiento de calidad de Byte Busters S.R.L. emite el siguiente
+veredicto global.
+
+\begin{Veredicto}
+\textbf{PRODUCTO APROBADO PARA LA RELEASE 2.0.0.} La plataforma EthosHub satisface los
+requisitos funcionales y no funcionales verificados y validados a lo largo de los cinco
+sprints. Se certifica su aptitud para el despliegue en producción, con la deuda técnica
+registrada para el mantenimiento evolutivo.
+\end{Veredicto}
+
+\vspace{0.4cm}
+\noindent
+\renewcommand{\arraystretch}{2.2}
+\fontsize{9}{11}\selectfont\sffamily
+\begin{tabularx}{\textwidth}{|>{\bfseries\color{colorPrimario}}p{4.2cm}|Y|Y|}
+\hline
+\rowcolor{headerTabla}
+\sffamily\textbf{Rol} & \sffamily\textbf{Nombre} & \sffamily\textbf{Firma / Fecha} \\
+\hline
+QA Lead & C.B. Quispe Flores & \hrulefill \\ \hline
+\rowcolor{grisTecnico}
+Scrum Master / Arquitecto & J.D. Pardo Pozo & \hrulefill \\ \hline
+Representante Legal & Juan Diego Pardo Pozo & \hrulefill \\ \hline
+\rowcolor{grisTecnico}
+Consultor TIS supervisor & Corina J. Flores Villarroel & \hrulefill \\ \hline
+\end{tabularx}
+
+\vspace{0.6cm}
+\begin{center}
+{\sffamily\footnotesize\color{grisISO}
+Documento \textbf{QA-VV-ETHOSHUB-2.0.0} \,$\cdot$\, Estado: Aprobado \,$\cdot$\,
+Cochabamba, Bolivia \,$\cdot$\, Junio de 2026\par}
+\end{center}

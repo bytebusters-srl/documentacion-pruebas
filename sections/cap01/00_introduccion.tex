@@ -1,0 +1,391 @@
+% =============================================================================
+% CAPÍTULO 1 — INTRODUCCIÓN Y CONTEXTO GLOBAL
+% =============================================================================
+\chapter{Introducción y Contexto Global}
+\label{ch:introduccion}
+\resumenCapitulo{Este capítulo establece el marco de referencia de la verificación y
+validación (V\&V) de la plataforma EthosHub: propósito, alcance, estándares aplicados,
+arquitectura del entorno de pruebas y el vocabulario común de estados de defecto que se
+emplea de forma transversal en los cinco sprints documentados.}
+
+% -----------------------------------------------------------------------------
+\section{Propósito del Documento}
+\label{sec:proposito}
+
+El presente documento constituye el \textbf{reporte consolidado de verificación y
+validación (V\&V)} de la plataforma EthosHub, un sistema generador de portafolios
+digitales y de descubrimiento de talento basado en valores, desarrollado por
+\textbf{Byte Busters S.R.L.} en el marco de la convocatoria CPTIS-2302-2026. Su objetivo
+es evidenciar, de forma trazable y reproducible, que el producto entregado satisface los
+requisitos funcionales y no funcionales acordados, y que su nivel de calidad es apto para
+el despliegue de la versión \textit{Release} 2.0.0.
+
+La \textbf{verificación} responde a la pregunta «¿estamos construyendo el producto
+correctamente?» y se materializa en pruebas unitarias, de componentes, de integración y
+análisis estático. La \textbf{validación} responde a «¿estamos construyendo el producto
+correcto?» y se materializa en pruebas de sistema, de aceptación de usuario y de los
+criterios de negocio de cada historia de usuario. Ambas disciplinas se aplican de manera
+incremental, sprint a sprint, conforme avanza la construcción del sistema.
+
+\begin{itemize}
+    \item \textbf{Auditabilidad:} cada caso de prueba se vincula a un requisito y, cuando
+    procede, a uno o más defectos, conformando una matriz de trazabilidad bidireccional.
+    \item \textbf{Reproducibilidad:} cada caso especifica precondiciones, datos de prueba
+    y pasos numerados, de modo que un tercero pueda re-ejecutarlo y obtener el mismo
+    veredicto.
+    \item \textbf{Objetividad:} los veredictos de aceptación de cada sprint se sustentan
+    en métricas cuantitativas (densidad de defectos, cobertura, tasa de aprobación) y no
+    en apreciaciones subjetivas.
+\end{itemize}
+
+\begin{AvisoNota}
+Este documento es un artefacto vivo del ciclo de vida del software. Las cinco iteraciones
+de prueba aquí descritas reflejan el estado real de los repositorios
+\comando{ethoshubB} (backend Spring Boot 3 / Java 17) y \comando{ethoshubF}
+(frontend React 18 / TypeScript / Vite) al cierre de cada sprint.
+\end{AvisoNota}
+
+% -----------------------------------------------------------------------------
+\section{Alcance Global de las Pruebas y Validación}
+\label{sec:alcance_global}
+
+El alcance de la V\&V abarca la totalidad de los dominios funcionales de la plataforma,
+agrupados por el sprint en el que fueron construidos y verificados. La
+tabla~\ref{tab:alcance-global} resume la correspondencia entre cada sprint y los módulos
+sometidos a prueba.
+
+\vspace{0.2cm}
+\noindent
+\renewcommand{\arraystretch}{1.35}
+\fontsize{8.5}{10.2}\selectfont\sffamily
+\begin{tabularx}{\textwidth}{|c|>{\bfseries\color{colorPrimario}}p{3.4cm}|Y|}
+\hline
+\rowcolor{headerTabla}
+\sffamily\textbf{Sprint} & \sffamily\textbf{Eje del incremento} & \sffamily\textbf{Dominios verificados} \\
+\hline
+1 & Cimientos y seguridad & Identidad federada (Supabase Auth), registro por rol, OTP de operaciones sensibles, cadena de filtros JWT, layouts base. \\
+\hline
+\rowcolor{grisTecnico}
+2 & Lógica de negocio & Matriz de \textit{hard}/\textit{soft skills}, experiencia laboral con geolocalización, formación académica, validación de DTO e integridad referencial. \\
+\hline
+3 & Funcionalidades avanzadas & Vitrina de proyectos con subida de evidencias, conexiones URL-first, chat en tiempo real, CV Studio (Monaco + Gemini) y Talent Discovery. \\
+\hline
+\rowcolor{grisTecnico}
+4 & Aseguramiento de calidad & Visibilidad pública/privada del portafolio, refuerzo OWASP (\textit{rate limiting}, \textit{blacklist} JWT), pruebas E2E y accesibilidad. \\
+\hline
+5 & Despliegue y cierre & Dashboards de métricas, internacionalización (es/en/pt), modo claro/oscuro, empaquetado monolítico y cierre de versión. \\
+\hline
+\end{tabularx}
+\label{tab:alcance-global}
+
+\vspace{0.3cm}
+\noindent\textbf{Quedan dentro del alcance:} las pruebas funcionales y no funcionales del
+backend y del frontend; las pruebas de integración entre ambos y con los servicios
+externos (Supabase, Gemini, Google Drive); las pruebas de seguridad de la superficie de
+API; y las pruebas de aceptación de las historias de usuario priorizadas en cada sprint.
+
+\noindent\textbf{Quedan fuera del alcance:} la auditoría de seguridad de los proveedores
+externos (gestionada por sus respectivos SLA), las pruebas de penetración de
+infraestructura de red y la certificación de accesibilidad WCAG por un tercero
+independiente (se realiza verificación interna AA).
+
+% -----------------------------------------------------------------------------
+\section{Estándares y Referencias}
+\label{sec:estandares}
+
+La estrategia de V\&V se alinea con los estándares internacionales que se enumeran en la
+tabla~\ref{tab:estandares}, garantizando que tanto el proceso como los artefactos de
+información sean conformes a la práctica reconocida de la industria.
+
+\vspace{0.2cm}
+\noindent
+\renewcommand{\arraystretch}{1.35}
+\fontsize{8.5}{10.2}\selectfont\sffamily
+\begin{tabularx}{\textwidth}{|>{\bfseries\color{colorPrimario}}p{4.2cm}|Y|}
+\hline
+\rowcolor{headerTabla}
+\sffamily\textbf{Estándar / Referencia} & \sffamily\textbf{Aporte a la V\&V de EthosHub} \\
+\hline
+IEEE 1012-2024 & Define los procesos de V\&V, los niveles de integridad y la
+independencia de las actividades de prueba. Estructura el ciclo verificación
+$\rightarrow$ validación $\rightarrow$ veredicto por incremento. \\
+\hline
+\rowcolor{grisTecnico}
+ISO/IEC/IEEE 15289:2024 & Especifica el contenido y la estructura de los productos de
+información del ciclo de vida (este reporte y sus secciones). \\
+\hline
+ISO/IEC/IEEE 29119 & Marco de referencia para el diseño de casos de prueba, técnicas de
+partición de equivalencia y valores límite empleadas en la especificación. \\
+\hline
+\rowcolor{grisTecnico}
+IEEE 829 & Plantilla histórica de documentación de pruebas (plan, especificación, log de
+ejecución y reporte de incidentes) que inspira la estructura de cada capítulo. \\
+\hline
+OWASP ASVS / Top 10 (2021) & Referencia de los casos de prueba de seguridad
+(inyección SQL, XSS, validación de tokens JWT, control de acceso roto). \\
+\hline
+\rowcolor{grisTecnico}
+WCAG 2.1 nivel AA & Criterios de las pruebas de accesibilidad de la interfaz del
+frontend (contraste, navegación por teclado, roles ARIA). \\
+\hline
+\end{tabularx}
+\label{tab:estandares}
+
+% -----------------------------------------------------------------------------
+\section{Arquitectura del Entorno de Pruebas}
+\label{sec:entorno}
+
+La V\&V de EthosHub se ejecuta sobre una topología de tres entornos claramente
+diferenciados, complementada por un conjunto de herramientas de prueba idiomáticas a cada
+\textit{stack}. La figura conceptual de promoción de cambios es:
+\textbf{Desarrollo $\rightarrow$ Staging $\rightarrow$ Producción}, donde ningún cambio
+alcanza producción sin haber superado la batería de pruebas en \textit{staging}.
+
+\subsection{Entornos de Ejecución}
+
+\vspace{0.1cm}
+\noindent
+\renewcommand{\arraystretch}{1.35}
+\fontsize{8.5}{10.2}\selectfont\sffamily
+\begin{tabularx}{\textwidth}{|>{\bfseries\color{colorPrimario}}p{2.6cm}|Y|Y|}
+\hline
+\rowcolor{headerTabla}
+\sffamily\textbf{Entorno} & \sffamily\textbf{Propósito} & \sffamily\textbf{Configuración relevante} \\
+\hline
+Desarrollo (local) & Pruebas unitarias y de componentes durante la codificación. & Perfil Spring \texttt{dev}; Vite \texttt{dev server}; PostgreSQL local o Testcontainers efímero. \\
+\hline
+\rowcolor{grisTecnico}
+Staging & Pruebas de integración, sistema, E2E y aceptación previa. & Perfil Spring \texttt{prod} sobre datos sintéticos; build de producción del frontend; instancia Supabase de pruebas. \\
+\hline
+Producción & \textit{Smoke tests} de verificación post-despliegue. & Empaquetado monolítico (frontend servido por Spring Boot); base de datos productiva con RLS activo. \\
+\hline
+\end{tabularx}
+
+\subsection{Herramientas de Prueba}
+
+La pirámide de pruebas combina verificación estática y dinámica en cada capa, tal como
+muestra la tabla~\ref{tab:herramientas}.
+
+\vspace{0.2cm}
+\noindent
+\renewcommand{\arraystretch}{1.35}
+\fontsize{8.5}{10.2}\selectfont\sffamily
+\begin{tabularx}{\textwidth}{|>{\bfseries\color{colorPrimario}}p{3.4cm}|>{\centering\arraybackslash}p{2.4cm}|Y|}
+\hline
+\rowcolor{headerTabla}
+\sffamily\textbf{Herramienta} & \sffamily\textbf{Componente} & \sffamily\textbf{Uso en la V\&V} \\
+\hline
+JUnit 5 & Backend & Pruebas unitarias de servicios, mapeadores y reglas de dominio. \\
+\hline
+\rowcolor{grisTecnico}
+Testcontainers + PostgreSQL & Backend & Pruebas de integración contra un PostgreSQL real efímero, sin brecha con producción. \\
+\hline
+Spring Security Test & Backend & Simulación de usuarios autenticados con roles para verificar la matriz de permisos. \\
+\hline
+\rowcolor{grisTecnico}
+springdoc-openapi / HTTP client & Backend & Verificación de contratos de API (códigos HTTP, esquema de respuesta). \\
+\hline
+Vitest 4 + jsdom & Frontend & Pruebas unitarias y de renderizado de componentes y \textit{hooks}. \\
+\hline
+\rowcolor{grisTecnico}
+Testing Library + user-event & Frontend & Interacción con la UI por rol accesible, no por detalle de implementación. \\
+\hline
+ESLint + TypeScript estricto & Frontend & Verificación estática (primera línea de defensa antes de ejecutar pruebas). \\
+\hline
+\rowcolor{grisTecnico}
+Pruebas exploratorias manuales & Ambos & Validación de UI/UX, \textit{cross-device} y accesibilidad asistida. \\
+\hline
+\end{tabularx}
+\label{tab:herramientas}
+
+\begin{NotaTecnica}
+Las pruebas de integración del backend levantan un contenedor \comando{postgres:latest}
+mediante Testcontainers y la anotación \comando{@ServiceConnection}, que conecta
+automáticamente el contenedor al \textit{datasource} de la aplicación. Así, el SQL tipado
+de jOOQ se verifica contra el mismo motor de base de datos que se usa en producción.
+\end{NotaTecnica}
+
+\subsection{Niveles de Prueba y Pirámide}
+\label{sec:niveles}
+
+La estrategia se organiza según la \textbf{pirámide de pruebas}: una base amplia de pruebas
+rápidas y baratas (unitarias y de componentes), una capa intermedia de pruebas de
+integración contra dependencias reales, y una cúspide reducida de pruebas de sistema y
+extremo a extremo. Esta forma maximiza la detección temprana de defectos minimizando el
+coste de mantenimiento.
+
+\clearpage
+\vspace{0.2cm}
+\begin{center}
+\begin{tikzpicture}[font=\sffamily\scriptsize]
+    \fill[colorAcento!35, draw=colorAcento!80!black] (0,3) -- (-1.2,1.8) -- (1.2,1.8) -- cycle;
+    \fill[c4Contenedor!45, draw=c4Sistema!70!black] (-1.2,1.8) -- (-2.6,0.5) -- (2.6,0.5) -- (1.2,1.8) -- cycle;
+    \fill[c4Componente!50, draw=c4Sistema!70!black] (-2.6,0.5) -- (-4.0,-0.8) -- (4.0,-0.8) -- (2.6,0.5) -- cycle;
+    \node at (0,2.35) {Sistema / E2E};
+    \node[align=center] at (0,1.1) {Integración\\\scriptsize Testcontainers + JUnit};
+    \node[align=center] at (0,-0.2) {Unitarias / Componentes\\\scriptsize Vitest · Testing Library · JUnit};
+    \draw[-{Stealth[length=2mm]}, grisISO] (4.9,-0.8) -- node[right, text=grisISO, font=\sffamily\tiny]{realismo} (4.9,3.0);
+    \draw[-{Stealth[length=2mm]}, grisISO] (-4.9,3.0) -- node[left, text=grisISO, font=\sffamily\tiny]{volumen} (-4.9,-0.8);
+\end{tikzpicture}
+\end{center}
+
+\vspace{0.1cm}
+\noindent
+\renewcommand{\arraystretch}{1.35}
+\fontsize{8.5}{10.2}\selectfont\sffamily
+\begin{tabularx}{\textwidth}{|>{\bfseries\color{colorPrimario}}p{3.2cm}|Y|c|}
+\hline
+\rowcolor{headerTabla}
+\sffamily\textbf{Nivel} & \sffamily\textbf{Objetivo de verificación} & \sffamily\textbf{Volumen} \\
+\hline
+Unitaria / Componente & Lógica de dominio, validadores, mapeadores, render de componentes y \textit{hooks}. & Alto \\ \hline
+\rowcolor{grisTecnico}
+Integración & Contratos de API, persistencia jOOQ, WebSockets y servicios de identidad. & Medio \\ \hline
+Sistema / E2E & Flujos de usuario completos, UI/UX, accesibilidad y \textit{cross-device}. & Bajo \\ \hline
+\rowcolor{grisTecnico}
+Seguridad & Inyección, XSS, control de acceso, SSRF y manejo de tokens (transversal). & Focalizado \\ \hline
+Rendimiento & Latencia y comportamiento a escala de los flujos críticos (transversal). & Focalizado \\ \hline
+\end{tabularx}
+
+\subsection{Técnicas de Diseño y Criterios de Entrada/Salida}
+\label{sec:tecnicas}
+
+El diseño de casos aplica técnicas de caja negra y caja blanca: \textbf{partición de
+equivalencia} y \textbf{análisis de valores límite} para las entradas, \textbf{tablas de
+decisión} para reglas combinadas, \textbf{transición de estados} para los ciclos de vida
+(OTP, conexiones, defectos) y \textbf{cobertura de ramas} para la lógica condicional
+crítica. Cada sprint observa criterios formales de entrada y salida.
+
+\vspace{0.1cm}
+\noindent
+\renewcommand{\arraystretch}{1.35}
+\fontsize{8.5}{10.2}\selectfont\sffamily
+\begin{tabularx}{\textwidth}{|>{\bfseries\color{colorPrimario}}p{3.4cm}|Y|}
+\hline
+\rowcolor{headerTabla}
+\sffamily\textbf{Criterio} & \sffamily\textbf{Condición} \\
+\hline
+Entrada a pruebas & Incremento desplegado en \textit{staging}; historias con criterios de aceptación definidos; datos de prueba disponibles. \\ \hline
+\rowcolor{grisTecnico}
+Suspensión & Defecto bloqueante que impide ejecutar más del 30\% de la suite; entorno de pruebas no disponible. \\ \hline
+Reanudación & Corrección del bloqueante verificada y entorno restablecido. \\ \hline
+\rowcolor{grisTecnico}
+Salida (aceptación) & 100\% de casos ejecutados; cero defectos críticos abiertos; cobertura sobre umbral; defectos remediados y verificados. \\ \hline
+\end{tabularx}
+
+\subsection{Gestión de Riesgos de Calidad}
+\label{sec:riesgos}
+
+La V\&V se priorizó por riesgo: las áreas con mayor probabilidad e impacto de fallo
+(autenticación, integraciones externas, control de acceso) recibieron mayor densidad de
+casos y profundidad de análisis. La tabla resume los riesgos transversales monitorizados.
+
+\vspace{0.1cm}
+\noindent
+\renewcommand{\arraystretch}{1.3}
+\fontsize{8.5}{10.2}\selectfont\sffamily
+\begin{tabularx}{\textwidth}{|>{\ttfamily\bfseries\color{colorPrimario}}p{1.8cm}|Y|c|}
+\hline
+\rowcolor{headerTabla}
+\sffamily\textbf{Riesgo} & \sffamily\textbf{Descripción} & \sffamily\textbf{Nivel} \\
+\hline
+R-01 & Brechas de control de acceso (IDOR, escalada de rol). & \sevCrit \\ \hline
+\rowcolor{grisTecnico}
+R-02 & Exposición de datos sensibles (tokens, secretos, PII). & \sevCrit \\ \hline
+R-03 & Vulnerabilidades de la superficie externa (SSRF, subida de archivos). & \sevAlt \\ \hline
+\rowcolor{grisTecnico}
+R-04 & Pérdida de integridad de datos (huérfanos, duplicados, cascadas). & \sevAlt \\ \hline
+R-05 & Degradación de rendimiento a escala (N+1, falta de índices). & \sevMed \\ \hline
+\rowcolor{grisTecnico}
+R-06 & Barreras de accesibilidad y de internacionalización. & \sevMed \\ \hline
+\end{tabularx}
+
+% -----------------------------------------------------------------------------
+\section{Glosario y Definición de Estados de Defectos}
+\label{sec:glosario}
+
+Para asegurar una interpretación unívoca de los resultados, este documento adopta el
+vocabulario controlado de las tablas~\ref{tab:estados-ejec}, \ref{tab:severidad} y
+\ref{tab:estados-defecto}.
+
+\subsection{Estados de Ejecución de un Caso de Prueba}
+
+\vspace{0.1cm}
+\noindent
+\renewcommand{\arraystretch}{1.35}
+\fontsize{8.5}{10.2}\selectfont\sffamily
+\begin{tabularx}{\textwidth}{|c|Y|}
+\hline
+\rowcolor{headerTabla}
+\sffamily\textbf{Estado} & \sffamily\textbf{Significado} \\
+\hline
+\bPass & El resultado real coincide con el resultado esperado; el caso satisface su criterio de aceptación. \\
+\hline
+\rowcolor{grisTecnico}
+\bFail & El resultado real difiere del esperado; se genera un reporte de defecto asociado. \\
+\hline
+\bBlock & El caso no pudo ejecutarse por una dependencia no satisfecha (defecto bloqueante previo o entorno no disponible). \\
+\hline
+\rowcolor{grisTecnico}
+\badge{bgSkip}{SKIP} & El caso se omite de forma justificada (fuera de alcance del sprint o funcionalidad despriorizada). \\
+\hline
+\end{tabularx}
+\label{tab:estados-ejec}
+
+\subsection{Escala de Severidad de Defectos}
+
+\vspace{0.1cm}
+\noindent
+\renewcommand{\arraystretch}{1.35}
+\fontsize{8.5}{10.2}\selectfont\sffamily
+\begin{tabularx}{\textwidth}{|c|Y|}
+\hline
+\rowcolor{headerTabla}
+\sffamily\textbf{Severidad} & \sffamily\textbf{Criterio de clasificación} \\
+\hline
+\sevCrit & Pérdida de datos, brecha de seguridad o caída total de una funcionalidad central. Bloquea el cierre del sprint. \\
+\hline
+\rowcolor{grisTecnico}
+\sevAlt & Funcionalidad importante inoperante sin \textit{workaround} razonable; degrada la experiencia de forma severa. \\
+\hline
+\sevMed & Comportamiento incorrecto con \textit{workaround} disponible o de impacto acotado a un caso de borde. \\
+\hline
+\rowcolor{grisTecnico}
+\sevBaj & Defecto cosmético, de copy o de detalle visual sin impacto funcional. \\
+\hline
+\end{tabularx}
+\label{tab:severidad}
+
+\clearpage
+\subsection{Ciclo de Vida (Estados) de un Defecto}
+
+\vspace{0.1cm}
+\noindent
+\renewcommand{\arraystretch}{1.35}
+\fontsize{8.5}{10.2}\selectfont\sffamily
+\begin{tabularx}{\textwidth}{|c|Y|}
+\hline
+\rowcolor{headerTabla}
+\sffamily\textbf{Estado} & \sffamily\textbf{Significado} \\
+\hline
+\resAbierto & Defecto reportado y reproducido por QA; pendiente de asignación o corrección. \\
+\hline
+\rowcolor{grisTecnico}
+\resResuelto & El desarrollo aplicó una corrección; pendiente de retesteo por QA. \\
+\hline
+\resVerif & QA confirmó la corrección mediante re-ejecución del caso de prueba asociado. \\
+\hline
+\rowcolor{grisTecnico}
+\resCerrado & Defecto verificado y cerrado formalmente en la iteración. \\
+\hline
+\resDiferido & Defecto aceptado pero pospuesto a un sprint posterior por priorización del \textit{Product Owner}. \\
+\hline
+\end{tabularx}
+\label{tab:estados-defecto}
+
+\begin{NotaTecnica}
+La nomenclatura de identificadores es uniforme en todo el documento:
+\comando{TC-Sn-NNN} para casos de prueba y \comando{BUG-Sn-NNN} para defectos, donde
+\texttt{n} es el número de sprint y \texttt{NNN} un correlativo. Los requisitos se
+referencian como \comando{RF-NN} (funcionales) y \comando{RNF-NN} (no funcionales).
+\end{NotaTecnica}

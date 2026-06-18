@@ -1,0 +1,77 @@
+% =============================================================================
+% HISTORIAL DE REVISIONES Y ROLES (ISO/IEC/IEEE 15289:2024)
+% =============================================================================
+\chapter*{Historial de Revisiones y Roles}
+\addcontentsline{toc}{chapter}{Historial de Revisiones y Roles}
+\markboth{Historial de Revisiones y Roles}{}
+
+El presente documento es el artefacto de \textbf{verificación y validación} (V\&V) del
+ciclo de vida de la plataforma EthosHub, elaborado conforme a los estándares
+\textbf{IEEE 1012-2024} (procesos de V\&V de sistemas y software) e
+\textbf{ISO/IEC/IEEE 15289:2024} (contenido de productos de información). Cada versión
+emitida queda trazada en los registros siguientes para garantizar la integridad y la
+responsabilidad (\textit{accountability}) sobre los resultados de prueba reportados.
+
+\section*{Control de Versiones del Documento}
+
+\vspace{0.2cm}
+\noindent
+\renewcommand{\arraystretch}{1.4}
+\fontsize{9}{10.8}\selectfont\sffamily
+\begin{tabularx}{\textwidth}{|c|c|X|c|}
+\hline
+\rowcolor{headerTabla}
+\textbf{Versión} & \textbf{Fecha} & \textbf{Descripción del cambio} & \textbf{Estado} \\
+\hline
+1.0.0 & 2026-04-18 & Plan maestro de pruebas y resultados de V\&V del Sprint 1 (identidad, seguridad perimetral y flujos OTP). & Aprobado \\
+\hline
+\rowcolor{grisTecnico}
+1.1.0 & 2026-05-02 & Incorporación de V\&V del Sprint 2 (matriz de habilidades, experiencia y formación académica). & Aprobado \\
+\hline
+1.2.0 & 2026-05-16 & V\&V del Sprint 3 (proyectos, conexiones URL-first, chat en tiempo real, CV Studio y Talent Discovery). & Aprobado \\
+\hline
+\rowcolor{grisTecnico}
+1.3.0 & 2026-05-30 & V\&V del Sprint 4 (visibilidad de portafolio, refuerzo OWASP, pruebas E2E y accesibilidad). & Aprobado \\
+\hline
+2.0.0 & 2026-06-17 & V\&V del Sprint 5 (estadísticas, i18n, empaquetado) y consolidación de métricas finales de la \textit{Release} 2.0.0. & Aprobado \\
+\hline
+\end{tabularx}
+
+\vspace{0.6cm}
+
+\section*{Roles del Equipo de Aseguramiento de Calidad}
+La estrategia de V\&V fue ejecutada por el equipo de \textbf{Byte Busters S.R.L.}, con la
+asignación de roles y validaciones técnicas (\textit{Subject Matter Experts}, SME) que se
+detalla a continuación.
+
+\clearpage
+\vspace{0.2cm}
+\noindent
+\renewcommand{\arraystretch}{1.4}
+\fontsize{9}{10.8}\selectfont\sffamily
+\begin{tabularx}{\textwidth}{|>{\bfseries\color{colorPrimario}}l|X|c|}
+\hline
+\rowcolor{headerTabla}
+\textbf{Rol} & \textbf{Responsabilidad en el documento} & \textbf{Validación (SME)} \\
+\hline
+QA Lead & Diseño de la estrategia global de V\&V, criterios de aceptación, trazabilidad y veredictos de sprint. & C.B. Quispe Flores \\
+\hline
+\rowcolor{grisTecnico}
+Scrum Master / Arquitecto & Definición de entornos (staging/producción), gestión del backlog de defectos y revisión de cobertura. & J.D. Pardo Pozo \\
+\hline
+Ingeniero QA Backend & Pruebas de integración con Testcontainers, pruebas de API y casos de seguridad del servidor. & Backend \\
+\hline
+\rowcolor{grisTecnico}
+Ingeniero QA Frontend & Pruebas de renderizado con Vitest y Testing Library, pruebas de sistema y UI/UX. & Frontend \\
+\hline
+Analista de Pruebas & Especificación de casos de prueba, ejecución manual exploratoria y registro forense de defectos. & V\&V \\
+\hline
+\end{tabularx}
+
+\vspace{0.4cm}
+\begin{NotaTecnica}
+Este documento es de carácter \textbf{confidencial} y está dirigido exclusivamente al
+equipo técnico de Byte Busters S.R.L. y a los evaluadores autorizados de la convocatoria
+CPTIS-2302-2026. Su identificador de trazabilidad es \comando{QA-VV-ETHOSHUB-2.0.0}.
+\end{NotaTecnica}
+\clearpage

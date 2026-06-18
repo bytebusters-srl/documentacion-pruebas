@@ -1,43 +1,58 @@
 % main.tex
-% Estructura Principal - Documentación de Pruebas (V&V) IEEE 1012-2024
+% Documento de Pruebas y Validaciones (V&V) — Plataforma EthosHub v2.0.0
+% Estándar IEEE 1012-2024 e ISO/IEC/IEEE 15289:2024
 
-\documentclass[11pt, a4paper, twoside]{report} 
+\documentclass[11pt, a4paper, twoside]{report}
 
-% --- 1. CARGA DE CONFIGURACIONES ---
+% ==========================================
+% CARGA DE CONFIGURACIONES
+% ==========================================
 \input{config/01_packages}
 \input{config/03_fonts_colors}
 \input{config/02_layout}
 \input{config/04_macros}
 
-% --- 2. METADATOS DEL DOCUMENTO ---
-% Estas variables alimentan el encabezado (Header) de forma dinámica
-\setDocID{QA-V\&V-SPRINT1}
-\setDocEstado{Release v1.0.0}
+% ==========================================
+% METADATOS DE TRAZABILIDAD DOCUMENTAL
+% ==========================================
+\setDocID{QA-VV-ETHOSHUB-2.0.0}
+\setDocEstado{Aprobado}
 
 \begin{document}
 
-% --- 3. PORTADA ---
-\include{sections/00_portada}
+% ==========================================
+% PORTADA
+% ==========================================
+\include{sections/front/00_portada}
 
-% --- 4. ÍNDICE (TABLA DE CONTENIDOS) ---
+% ==========================================
+% TABLA DE CONTENIDOS
+% ==========================================
 \clearpage
 \begingroup
   \makeatletter \let\ps@plain\ps@empty \makeatother
-  \pagestyle{empty} 
-  \tableofcontents % Genera el índice automáticamente leyendo los \chapter y \section
+  \pagestyle{empty}
+  \tableofcontents
   \clearpage
 \endgroup
 
-% --- 5. INICIO DEL CONTENIDO ---
-\pagestyle{fancy}   
-\setcounter{page}{1} 
+\pagestyle{fancy}
+\setcounter{page}{1}
 
 % ==========================================
-% INCLUSIÓN DE MÓDULOS DE PRUEBA
+% HISTORIAL DE REVISIONES Y ROLES
 % ==========================================
-\include{sections/01_v1.0.0}
-\include{sections/02_v1.1.0}
-\include{sections/03_v1.2.0}
-\include{sections/04_v1.3.0}
+\include{sections/front/01_historial}
+
+% ==========================================
+% CONTENIDO DE V&V
+% ==========================================
+\include{sections/cap01/00_introduccion} % 1. Introducción y Contexto Global
+\include{sections/cap02/00_sprint1}       % 2. V&V Sprint 1
+\include{sections/cap03/00_sprint2}       % 3. V&V Sprint 2
+\include{sections/cap04/00_sprint3}       % 4. V&V Sprint 3
+\include{sections/cap05/00_sprint4}       % 5. V&V Sprint 4
+\include{sections/cap06/00_sprint5}       % 6. V&V Sprint 5
+\include{sections/cap07/00_conclusiones}  % 7. Conclusiones Globales
 
 \end{document}

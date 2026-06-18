@@ -1,21 +1,33 @@
-# Atajos para compilar el documento LaTeX
+# Atajos para compilar el documento LaTeX (Documento V&V)
 
-# Variables
-DOCNAME = main      	# Nombre del documento (sin extensión .tex)
-BUILDDIR = build		# Carpeta donde se guardarán los archivos generados
+DOCNAME = main
+BUILDDIR = build
 
-.PHONY: all clean watch
+.PHONY: all clean watch prepare
 
-# Atajo 1: 'make' o 'make all' -> Compila el documento
-all:
-	latexmk $(DOCNAME).tex
+prepare:
+	mkdir -p $(BUILDDIR)/sections/front
+	mkdir -p $(BUILDDIR)/sections/cap01
+	mkdir -p $(BUILDDIR)/sections/cap02
+	mkdir -p $(BUILDDIR)/sections/cap03
+	mkdir -p $(BUILDDIR)/sections/cap04
+	mkdir -p $(BUILDDIR)/sections/cap05
+	mkdir -p $(BUILDDIR)/sections/cap06
+	mkdir -p $(BUILDDIR)/sections/cap07
 
-# Atajo 2: 'make clean' -> Borra la carpeta build y el caché de minted
+PDFLATEX = pdflatex -interaction=nonstopmode -synctex=1 -shell-escape -output-directory=$(BUILDDIR)
+
+all: prepare
+	-$(PDFLATEX) $(DOCNAME).tex
+	-$(PDFLATEX) $(DOCNAME).tex
+	-$(PDFLATEX) $(DOCNAME).tex
+	-$(PDFLATEX) $(DOCNAME).tex
+	-$(PDFLATEX) $(DOCNAME).tex
+	@echo "PDF generado en $(BUILDDIR)/$(DOCNAME).pdf"
+
 clean:
 	latexmk -c
 	rm -rf $(BUILDDIR)/*
-	rm -rf _minted-$(DOCNAME)
 
-# Atajo 3: 'make watch' -> Se queda escuchando. Si guardas un cambio, compila solo.
-watch:
+watch: prepare
 	latexmk -pvc $(DOCNAME).tex

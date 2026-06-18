@@ -1,0 +1,630 @@
+% =============================================================================
+% CAPÍTULO 6 — PRUEBAS Y VALIDACIONES — SPRINT 5
+% =============================================================================
+\chapter{Pruebas y Validaciones — Sprint 5}
+\label{ch:sprint5}
+\resumenCapitulo{Verificación y validación del incremento de despliegue y cierre de
+versión: dashboards de métricas para profesional y administrador, internacionalización
+(es/en/pt), modo claro/oscuro y responsividad final, \textit{seeders} maestros, políticas de
+\textit{backup} y empaquetado monolítico de la \textit{Release} 2.0.0. Se documentan 40 casos
+de prueba y 9 defectos.}
+
+% =============================================================================
+\section{Alcance y Objetivos de V\&V del Sprint}
+\label{sec:s5-alcance}
+
+El Sprint 5 preparó la versión de lanzamiento. El objetivo de V\&V fue \textbf{validar la
+preparación para producción}: exactitud de las métricas y su control de acceso, cobertura
+de internacionalización, persistencia del tema, integridad de los \textit{seeders} y
+\textit{backups}, y el correcto empaquetado monolítico con \textit{smoke tests}
+post-despliegue.
+
+\subsection{Funcionalidades y Componentes Evaluados}
+\label{sec:s5-funcionalidades}
+
+\begin{itemize}
+    \item \textbf{Estadísticas:} dashboards de métricas para profesional y administrador
+    (\ruta{/api/admin/metrics/overview}, \texttt{growth}, \texttt{roles},
+    \texttt{top-skills}, \texttt{health}) y registro de auditoría (\ruta{/logs}).
+    \item \textbf{Adaptabilidad:} internacionalización es/en/pt (i18next), modo claro/oscuro
+    y responsividad final.
+    \item \textbf{Notificaciones:} marcado de leídas (\texttt{PATCH .../read} y
+    \texttt{read-all}).
+    \item \textbf{Producción de datos:} \textit{seeders} maestros idempotentes y políticas
+    de \textit{backup}/restauración.
+    \item \textbf{Despliegue:} empaquetado monolítico (frontend servido por Spring Boot),
+    contenedores y variables de entorno seguras.
+    \item \textbf{Cierre de versión:} \textit{smoke tests} post-despliegue y regresión de la
+    suite completa de sprints previos.
+\end{itemize}
+
+\subsection{Criterios de Aceptación Globales del Sprint}
+\label{sec:s5-criterios}
+
+\vspace{0.1cm}
+\noindent
+\renewcommand{\arraystretch}{1.35}
+\fontsize{8.5}{10.2}\selectfont\sffamily
+\begin{tabularx}{\textwidth}{|>{\ttfamily\bfseries\color{colorPrimario}}p{2.0cm}|Y|c|}
+\hline
+\rowcolor{headerTabla}
+\sffamily\textbf{Criterio} & \sffamily\textbf{Descripción} & \sffamily\textbf{Estado} \\
+\hline
+CA-S5-01 & Las métricas son exactas y solo accesibles por el rol autorizado. & \bPass \\ \hline
+\rowcolor{grisTecnico}
+CA-S5-02 & La interfaz está traducida por completo en es/en/pt. & \bPass \\ \hline
+CA-S5-03 & El tema claro/oscuro persiste entre sesiones. & \bPass \\ \hline
+\rowcolor{grisTecnico}
+CA-S5-04 & Los registros de auditoría no exponen datos sensibles. & \bPass \\ \hline
+CA-S5-05 & El empaquetado monolítico arranca y supera los smoke tests. & \bPass \\ \hline
+CA-S5-06 & La suite de regresión completa permanece en verde. & \bPass \\ \hline
+\end{tabularx}
+
+\begin{Veredicto}
+Los seis criterios se cumplieron. Los defectos críticos de control de acceso a métricas
+(\comando{BUG-S5-001}), fuga de tokens en logs (\comando{BUG-S5-002}) y secreto incrustado
+en el \textit{bundle} (\comando{BUG-S5-007}) se corrigieron y verificaron antes del cierre
+de versión.
+\end{Veredicto}
+
+% =============================================================================
+\clearpage
+\section{Trazabilidad de Requisitos}
+\label{sec:s5-trazabilidad}
+
+\subsection{Matriz de Trazabilidad (Historias de Perfil vs. Casos de Prueba)}
+\label{sec:s5-rtm}
+
+\begin{MatrizRTM}
+\rtmRow{RF-25}{Dashboard de métricas (admin y profesional)}{TC-S5-001, TC-S5-002, TC-S5-003, TC-S5-015, TC-S5-016, TC-S5-029, TC-S5-030}{BUG-S5-005, BUG-S5-008}
+\rtmRow{RF-26}{Registro de auditoría (logs)}{TC-S5-020, TC-S5-035}{BUG-S5-002}
+\rtmRow{RF-27}{Internacionalización es/en/pt}{TC-S5-005, TC-S5-006, TC-S5-007, TC-S5-011, TC-S5-031, TC-S5-039}{BUG-S5-003}
+\rtmRow{RF-28}{Modo claro/oscuro}{TC-S5-008, TC-S5-012, TC-S5-032}{BUG-S5-004}
+\rtmRow{RF-29}{Notificaciones (marcar leídas)}{TC-S5-013, TC-S5-022, TC-S5-023}{BUG-S5-009}
+\rtmRow{RF-30}{Seeders y backups}{TC-S5-009, TC-S5-025, TC-S5-026}{BUG-S5-006}
+\rtmRow{RNF-21}{Control de acceso a métricas por rol}{TC-S5-021, TC-S5-034}{BUG-S5-001}
+\rtmRow{RNF-22}{No exposición de secretos en el bundle}{TC-S5-036}{BUG-S5-007}
+\rtmRow{RNF-23}{Empaquetado monolítico y smoke tests}{TC-S5-027, TC-S5-028, TC-S5-037}{—}
+\rtmRow{RNF-24}{Rendimiento del dashboard a escala}{TC-S5-038}{BUG-S5-008}
+\rtmRow{RNF-25}{Regresión completa sin retrocesos}{TC-S5-040}{—}
+\end{MatrizRTM}
+
+% =============================================================================
+\clearpage
+\section{Especificación y Diseño de Casos de Prueba}
+\label{sec:s5-casos}
+
+\subsection{Pruebas Unitarias y de Componentes}
+\label{sec:s5-unitarias}
+
+\begin{CatalogoTC}
+\tcRow{TC-S5-001}{Cálculo de la métrica de crecimiento (growth)}{Unitaria}{Alta}{\bFail}
+\tcRow{TC-S5-002}{Agregación de las habilidades más frecuentes}{Unitaria}{Media}{\bPass}
+\tcRow{TC-S5-003}{Distribución de usuarios por rol}{Unitaria}{Media}{\bPass}
+\tcRow{TC-S5-004}{Métrica de salud (uptime y conexión a BD)}{Unitaria}{Media}{\bPass}
+\tcRow{TC-S5-005}{i18n: clave faltante usa el fallback}{Unitaria}{Media}{\bPass}
+\tcRow{TC-S5-006}{i18n: pluralización correcta en es/en/pt}{Unitaria}{Media}{\bPass}
+\tcRow{TC-S5-007}{Detección del idioma del navegador}{Unitaria}{Media}{\bPass}
+\tcRow{TC-S5-008}{El cambio de tema persiste en localStorage}{Unitaria}{Media}{\bFail}
+\tcRow{TC-S5-009}{Seeder idempotente (no duplica)}{Unitaria}{Alta}{\bFail}
+\tcRow{TC-S5-010}{Componente: gráfico Recharts renderiza datos}{Componente}{Baja}{\bPass}
+\tcRow{TC-S5-011}{Componente: selector de idioma}{Componente}{Media}{\bPass}
+\tcRow{TC-S5-012}{Componente: toggle de tema claro/oscuro}{Componente}{Media}{\bPass}
+\tcRow{TC-S5-013}{Componente: notificación se marca como leída}{Componente}{Media}{\bPass}
+\tcRow{TC-S5-014}{Formato de fecha localizado por idioma}{Unitaria}{Baja}{\bPass}
+\end{CatalogoTC}
+
+\begin{FichaTC}{TC-S5-001}{Cálculo de la métrica de crecimiento (growth)}
+\tcMeta{Unitaria}{Alta}{\texttt{admin} · métricas}{RF-25}
+\tcCampo{Precondiciones}{El cálculo de crecimiento compara el periodo actual con el anterior.}
+\tcCampo{Datos de prueba}{Periodo anterior = 0 usuarios; periodo actual = 10 usuarios.}
+\resetPasos
+\begin{tcPasos}
+\paso{Calcular el crecimiento con periodo anterior 0.}{Debe devolver un valor definido (p. ej. 100\% o "n/d").}
+\paso{Calcular con periodo anterior 5 y actual 10.}{Devuelve 100\%.}
+\paso{Verificar que no se produce división por cero.}{Sin \texttt{NaN}/\texttt{Infinity}.}
+\end{tcPasos}
+\tcResultado{El crecimiento se calcula sin errores de división.}{Devolvía \texttt{Infinity}
+cuando el periodo anterior era 0. Ver \comando{BUG-S5-005}.}{\bFail}
+\end{FichaTC}
+
+\begin{FichaTC}{TC-S5-008}{El cambio de tema persiste entre sesiones}
+\tcMeta{Unitaria}{Media}{\texttt{frontend} · tema}{RF-28}
+\tcCampo{Precondiciones}{El usuario selecciona el modo oscuro.}
+\tcCampo{Datos de prueba}{Recarga de la página tras seleccionar el tema.}
+\resetPasos
+\begin{tcPasos}
+\paso{Seleccionar el modo oscuro.}{La preferencia se guarda en \texttt{localStorage}.}
+\paso{Recargar la aplicación.}{El tema oscuro se aplica al montar.}
+\paso{Verificar el valor persistido.}{\texttt{theme=dark}.}
+\end{tcPasos}
+\tcResultado{El tema seleccionado persiste tras recargar.}{El tema volvía a claro al
+recargar. Ver \comando{BUG-S5-004}.}{\bFail}
+\end{FichaTC}
+
+\begin{FichaTC}{TC-S5-009}{El seeder maestro es idempotente}
+\tcMeta{Unitaria}{Alta}{\texttt{db} · seeders}{RF-30}
+\tcCampo{Precondiciones}{Base de datos con catálogos ya sembrados.}
+\tcCampo{Datos de prueba}{Doble ejecución del seeder de catálogos (etiquetas, roles).}
+\resetPasos
+\begin{tcPasos}
+\paso{Ejecutar el seeder por primera vez.}{Catálogos poblados.}
+\paso{Re-ejecutar el seeder.}{No debe duplicar filas.}
+\paso{Contar las filas del catálogo.}{Igual que tras la primera ejecución.}
+\end{tcPasos}
+\tcResultado{El seeder no duplica datos al re-ejecutarse.}{El catálogo se duplicaba en la
+segunda ejecución. Ver \comando{BUG-S5-006}.}{\bFail}
+\end{FichaTC}
+
+\subsection{Pruebas de Integración (APIs, WebSockets, Servicios de Identidad)}
+\label{sec:s5-integracion}
+
+\begin{CatalogoTC}
+\tcRow{TC-S5-015}{GET /metrics/overview devuelve el resumen}{Integración}{Alta}{\bPass}
+\tcRow{TC-S5-016}{GET /metrics/growth devuelve la serie temporal}{Integración}{Alta}{\bPass}
+\tcRow{TC-S5-017}{GET /metrics/roles devuelve la distribución}{Integración}{Media}{\bPass}
+\tcRow{TC-S5-018}{GET /metrics/top-skills devuelve el ranking}{Integración}{Media}{\bPass}
+\tcRow{TC-S5-019}{GET /metrics/health reporta el estado}{Integración}{Media}{\bPass}
+\tcRow{TC-S5-020}{GET /logs devuelve el registro paginado}{Integración}{Media}{\bFail}
+\tcRow{TC-S5-021}{Métricas exigen rol ADMIN (403 para otros)}{Integración}{Crítica}{\bFail}
+\tcRow{TC-S5-022}{PATCH notification/read marca como leída}{Integración}{Media}{\bPass}
+\tcRow{TC-S5-023}{POST notifications/read-all marca todas}{Integración}{Media}{\bFail}
+\tcRow{TC-S5-024}{PUT preferences/settings guarda idioma y tema}{Integración}{Media}{\bPass}
+\tcRow{TC-S5-025}{El seeder maestro puebla los catálogos}{Integración}{Alta}{\bPass}
+\tcRow{TC-S5-026}{La restauración de backup es consistente}{Integración}{Alta}{\bPass}
+\tcRow{TC-S5-027}{Smoke: /ping y /actuator/health responden}{Integración}{Alta}{\bPass}
+\tcRow{TC-S5-028}{El monolito sirve el frontend desde Spring}{Integración}{Alta}{\bPass}
+\end{CatalogoTC}
+
+\clearpage
+\begin{TablaAPI}
+\textbf{Endpoint} & \texttt{GET /api/admin/metrics/overview} \\ \hline
+Cabeceras & \texttt{Authorization: Bearer <jwt ADMIN>} \\ \hline
+\rowcolor{grisTecnico}
+Respuesta 200 & \texttt{\{"totalUsers":..., "activeProfiles":..., "growthRate":...\}} \\ \hline
+Respuesta 403 & Rol distinto de ADMIN \\ \hline
+\rowcolor{grisTecnico}
+Caso negativo & Sin token $\rightarrow$ \texttt{401}; rol PROFESSIONAL $\rightarrow$ \texttt{403}. \\ \hline
+\end{TablaAPI}
+
+\begin{FichaTC}{TC-S5-021}{Las métricas exigen rol de administrador}
+\tcMeta{Integración}{Crítica}{\texttt{admin} · control de acceso}{RNF-21}
+\tcCampo{Precondiciones}{Un usuario con rol \texttt{PROFESSIONAL} y un administrador.}
+\tcCampo{Datos de prueba}{\texttt{GET /api/admin/metrics/overview} con sesión de profesional.}
+\resetPasos
+\begin{tcPasos}
+\paso{Consultar las métricas como administrador.}{HTTP \texttt{200}.}
+\paso{Consultar como profesional.}{Debe responder \texttt{403 Forbidden}.}
+\paso{Consultar sin sesión.}{\texttt{401}.}
+\end{tcPasos}
+\tcResultado{Solo el rol ADMIN accede a las métricas.}{El endpoint era accesible por
+cualquier usuario autenticado. Ver \comando{BUG-S5-001}.}{\bFail}
+\end{FichaTC}
+
+\begin{FichaTC}{TC-S5-020}{El registro de auditoría no expone datos sensibles}
+\tcMeta{Integración}{Media}{\texttt{admin} · logs}{RF-26}
+\tcCampo{Precondiciones}{Existen eventos de login y de operaciones con token.}
+\tcCampo{Datos de prueba}{\texttt{GET /api/admin/logs} y revisión del contenido.}
+\resetPasos
+\begin{tcPasos}
+\paso{Consultar los logs como administrador.}{Devuelve eventos paginados.}
+\paso{Inspeccionar el contenido de cada evento.}{No debe contener tokens ni contraseñas.}
+\paso{Buscar patrones de JWT/credenciales.}{Sin coincidencias.}
+\end{tcPasos}
+\tcResultado{Los logs no contienen secretos.}{Algunos eventos incluían el JWT completo. Ver
+\comando{BUG-S5-002}.}{\bFail}
+\end{FichaTC}
+
+\begin{FichaTC}{TC-S5-028}{El empaquetado monolítico sirve el frontend desde Spring Boot}
+\tcMeta{Integración}{Alta}{\texttt{deploy} · monolito}{RNF-23}
+\tcCampo{Precondiciones}{Artefacto monolítico con el \textit{build} de producción del
+frontend empaquetado como recursos estáticos.}
+\tcCampo{Datos de prueba}{Arranque del contenedor y solicitud de la raíz \texttt{/} y de la
+API \texttt{/api}.}
+\resetPasos
+\begin{tcPasos}
+\paso{Arrancar el contenedor del monolito.}{La aplicación inicia sin errores.}
+\paso{Solicitar la raíz \texttt{/}.}{Sirve la SPA del frontend.}
+\paso{Solicitar un endpoint de API.}{Responde correctamente.}
+\end{tcPasos}
+\tcResultado{Un solo artefacto sirve frontend y API.}{Conforme; el empaquetado monolítico
+opera como se diseñó.}{\bPass}
+\end{FichaTC}
+
+\begin{FichaTC}{TC-S5-015}{El resumen de métricas devuelve datos correctos (admin)}
+\tcMeta{Integración}{Alta}{\texttt{admin} · métricas}{RF-25}
+\tcCampo{Precondiciones}{Administrador autenticado; datos sintéticos cargados.}
+\tcCampo{Datos de prueba}{\texttt{GET /api/admin/metrics/overview}.}
+\resetPasos
+\begin{tcPasos}
+\paso{Solicitar el resumen como administrador.}{HTTP \texttt{200} con totales coherentes.}
+\paso{Contrastar los totales con la base de datos.}{Coinciden.}
+\paso{Verificar el cálculo de crecimiento.}{Sin valores indefinidos.}
+\end{tcPasos}
+\tcResultado{El resumen es exacto y consistente.}{Conforme tras corregir la división por
+cero (\comando{BUG-S5-005}).}{\bPass}
+\end{FichaTC}
+
+\begin{FichaTC}{TC-S5-024}{Guardado de preferencias de idioma y tema}
+\tcMeta{Integración}{Media}{\texttt{preferences} · settings}{RF-28}
+\tcCampo{Precondiciones}{Usuario autenticado.}
+\tcCampo{Datos de prueba}{\texttt{PUT /api/preferences/settings} con
+\texttt{\{"locale":"pt","theme":"dark"\}}.}
+\resetPasos
+\begin{tcPasos}
+\paso{Guardar idioma portugués y tema oscuro.}{HTTP \texttt{200}.}
+\paso{Recargar la sesión.}{Las preferencias se aplican.}
+\paso{Consultar las preferencias.}{Persistidas correctamente.}
+\end{tcPasos}
+\tcResultado{Las preferencias persisten y se aplican.}{Conforme tras corregir la
+persistencia del tema (\comando{BUG-S5-004}).}{\bPass}
+\end{FichaTC}
+
+\begin{FichaTC}{TC-S5-031}{Cambiar el idioma traduce toda la interfaz}
+\tcMeta{Sistema}{Alta}{\texttt{frontend} · i18n}{RF-27}
+\tcCampo{Precondiciones}{Aplicación cargada en español.}
+\tcCampo{Datos de prueba}{Cambio de idioma a inglés y a portugués.}
+\resetPasos
+\begin{tcPasos}
+\paso{Seleccionar inglés en el selector de idioma.}{La UI se traduce por completo.}
+\paso{Seleccionar portugués.}{La UI se traduce sin claves crudas.}
+\paso{Recorrer las vistas principales.}{Todos los textos traducidos.}
+\end{tcPasos}
+\tcResultado{El cambio de idioma traduce toda la UI.}{Conforme tras completar las claves de
+portugués (\comando{BUG-S5-003}).}{\bPass}
+\end{FichaTC}
+
+\subsection{Pruebas de Sistema y UI/UX}
+\label{sec:s5-sistema}
+
+\begin{CatalogoTC}
+\tcRow{TC-S5-029}{Dashboard de administrador muestra métricas (UI E2E)}{Sistema}{Alta}{\bPass}
+\tcRow{TC-S5-030}{El profesional ve sus estadísticas}{Sistema}{Alta}{\bPass}
+\tcRow{TC-S5-031}{Cambiar idioma traduce toda la UI}{Sistema}{Alta}{\bFail}
+\tcRow{TC-S5-032}{El modo oscuro se aplica a toda la UI}{Sistema}{Media}{\bPass}
+\tcRow{TC-S5-033}{Responsividad final en 3 breakpoints}{Sistema}{Alta}{\bPass}
+\tcRow{TC-S5-034}{El profesional no accede a métricas de admin}{Seguridad}{Crítica}{\bFail}
+\tcRow{TC-S5-035}{Los logs no muestran PII ni tokens (UI)}{Seguridad}{Alta}{\bFail}
+\tcRow{TC-S5-036}{El bundle del frontend no incluye secretos}{Seguridad}{Crítica}{\bFail}
+\tcRow{TC-S5-037}{El contenedor arranca con variables de entorno}{Sistema}{Alta}{\bPass}
+\tcRow{TC-S5-038}{Dashboard con 10k usuarios responde < 1,5 s}{Rendimiento}{Alta}{\bFail}
+\tcRow{TC-S5-039}{Cobertura i18n 100\% en en y pt}{Sistema}{Media}{\bFail}
+\tcRow{TC-S5-040}{Regresión completa de sprints previos en verde}{Sistema}{Alta}{\bPass}
+\end{CatalogoTC}
+
+\clearpage
+\begin{FichaTC}{TC-S5-036}{El bundle del frontend no incluye secretos}
+\tcMeta{Seguridad}{Crítica}{\texttt{frontend} · build}{RNF-22}
+\tcCampo{Precondiciones}{Build de producción del frontend (Vite).}
+\tcCampo{Datos de prueba}{Búsqueda de patrones de claves de servicio en el \textit{bundle}
+compilado.}
+\resetPasos
+\begin{tcPasos}
+\paso{Generar el build de producción.}{Artefactos en \texttt{dist/}.}
+\paso{Buscar claves de servicio/secretos en los \textit{assets}.}{No debe haber secretos de servidor.}
+\paso{Verificar que solo se exponen claves públicas (anon).}{Únicamente claves destinadas al cliente.}
+\end{tcPasos}
+\tcResultado{El bundle solo contiene claves públicas.}{Una clave de servicio se incrustaba
+por una variable mal prefijada. Ver \comando{BUG-S5-007}.}{\bFail}
+\end{FichaTC}
+
+\begin{FichaTC}{TC-S5-038}{El dashboard a escala responde por debajo de 1,5 s}
+\tcMeta{Rendimiento}{Alta}{\texttt{admin} · métricas}{RNF-24}
+\tcCampo{Precondiciones}{Base de datos sintética con 10.000 usuarios y actividad asociada.}
+\tcCampo{Datos de prueba}{\texttt{GET /api/admin/metrics/overview} y \texttt{growth}.}
+\resetPasos
+\begin{tcPasos}
+\paso{Solicitar el resumen y la serie de crecimiento.}{Respuestas \texttt{200}.}
+\paso{Medir la latencia.}{Por debajo de 1,5 s.}
+\paso{Inspeccionar el plan de ejecución SQL.}{Sin \textit{full scans} costosos.}
+\end{tcPasos}
+\tcResultado{El dashboard responde bajo 1,5 s a escala.}{La consulta de crecimiento hacía un
+\textit{full scan} por falta de índice en \texttt{created\_at} (3,4 s). Ver
+\comando{BUG-S5-008}.}{\bFail}
+\end{FichaTC}
+
+\begin{FichaTC}{TC-S5-039}{Cobertura de traducciones del 100\% en inglés y portugués}
+\tcMeta{Sistema}{Media}{\texttt{frontend} · i18n}{RF-27}
+\tcCampo{Precondiciones}{Archivos de recursos en es/en/pt.}
+\tcCampo{Datos de prueba}{Comparación de claves de \texttt{es} contra \texttt{en} y
+\texttt{pt}.}
+\resetPasos
+\begin{tcPasos}
+\paso{Extraer el conjunto de claves de cada idioma.}{Conjuntos comparables.}
+\paso{Detectar claves faltantes en en y pt.}{Debe ser cero.}
+\paso{Verificar el render sin claves crudas.}{Sin claves visibles en la UI.}
+\end{tcPasos}
+\tcResultado{Cobertura i18n completa en los tres idiomas.}{Faltaban claves en \texttt{pt} que
+se mostraban crudas. Ver \comando{BUG-S5-003}.}{\bFail}
+\end{FichaTC}
+
+\begin{FichaTC}{TC-S5-034}{El profesional no accede a las métricas de administración}
+\tcMeta{Seguridad}{Crítica}{\texttt{admin} · control de acceso}{RNF-21}
+\tcCampo{Precondiciones}{Usuario con rol \texttt{PROFESSIONAL} autenticado.}
+\tcCampo{Datos de prueba}{Navegación directa a la ruta del dashboard de administración.}
+\resetPasos
+\begin{tcPasos}
+\paso{Intentar acceder al dashboard de admin como profesional.}{Acceso denegado en la UI.}
+\paso{Llamar directamente al endpoint de métricas.}{HTTP \texttt{403}.}
+\paso{Verificar la ausencia de fuga de datos.}{Sin métricas globales expuestas.}
+\end{tcPasos}
+\tcResultado{Solo el rol ADMIN accede a las métricas.}{Conforme tras añadir
+\texttt{@PreAuthorize} (\comando{BUG-S5-001}).}{\bPass}
+\end{FichaTC}
+
+\begin{FichaTC}{TC-S5-040}{La regresión completa de sprints previos permanece en verde}
+\tcMeta{Sistema}{Alta}{\texttt{suite} · regresión}{RNF-25}
+\tcCampo{Precondiciones}{Artefacto de la Release 2.0.0 desplegado en staging.}
+\tcCampo{Datos de prueba}{Suite automatizada de los sprints 1 a 4 (backend y frontend).}
+\resetPasos
+\begin{tcPasos}
+\paso{Ejecutar la suite de regresión completa.}{Todas las pruebas previas se ejecutan.}
+\paso{Revisar resultados.}{Sin retrocesos (cero regresiones).}
+\paso{Comparar con la línea base de cada sprint.}{Resultados equivalentes o mejores.}
+\end{tcPasos}
+\tcResultado{La regresión no detecta retrocesos.}{Conforme; la Release 2.0.0 preserva el
+comportamiento verificado.}{\bPass}
+\end{FichaTC}
+
+\begin{FichaTC}{TC-S5-037}{El contenedor arranca con las variables de entorno seguras}
+\tcMeta{Sistema}{Alta}{\texttt{deploy} · contenedor}{RNF-23}
+\tcCampo{Precondiciones}{Imagen del monolito construida; archivo de variables de entorno de
+staging (sin secretos en el repositorio).}
+\tcCampo{Datos de prueba}{\texttt{docker-compose up} con las variables inyectadas en tiempo
+de ejecución.}
+\resetPasos
+\begin{tcPasos}
+\paso{Arrancar el contenedor con las variables de entorno.}{La aplicación inicia y conecta a la base de datos.}
+\paso{Verificar que los secretos no están en la imagen.}{Las claves se leen del entorno, no del artefacto.}
+\paso{Ejecutar el smoke test \texttt{/actuator/health}.}{Estado \texttt{UP}.}
+\end{tcPasos}
+\tcResultado{El contenedor arranca con configuración segura por entorno.}{Conforme; ningún
+secreto queda embebido en la imagen ni en el bundle (\comando{BUG-S5-007}).}{\bPass}
+\end{FichaTC}
+
+% =============================================================================
+\clearpage
+\section{Ejecución de Pruebas (Test Logs)}
+\label{sec:s5-ejecucion}
+
+\subsection{Resumen de Ejecución (Planificadas vs. Ejecutadas)}
+\label{sec:s5-resumen}
+
+\vspace{0.1cm}
+\noindent
+\renewcommand{\arraystretch}{1.35}
+\fontsize{8.5}{10.2}\selectfont\sffamily
+\begin{tabularx}{\textwidth}{|>{\bfseries\color{colorPrimario}}p{4.6cm}|c|Y|}
+\hline
+\rowcolor{headerTabla}
+\sffamily\textbf{Categoría} & \sffamily\textbf{Cant.} & \sffamily\textbf{Observación} \\
+\hline
+Casos planificados & 40 & Diseñados al inicio del sprint. \\ \hline
+\rowcolor{grisTecnico}
+Casos ejecutados & 40 & 100\% de ejecución. \\ \hline
+Casos aprobados (PASS) & 31 & 77,5\% de tasa de aprobación. \\ \hline
+\rowcolor{grisTecnico}
+Casos fallidos (FAIL) & 9 & Generaron reporte de defecto. \\ \hline
+Casos bloqueados (BLOCK) & 0 & Sin bloqueos. \\ \hline
+\end{tabularx}
+
+\vspace{0.3cm}
+\graficoEjecucion{31}{9}{0}{40}
+
+\subsection{Entornos y Datos de Prueba Utilizados}
+\label{sec:s5-datos}
+
+\vspace{0.1cm}
+\noindent
+\renewcommand{\arraystretch}{1.3}
+\fontsize{8.5}{10.2}\selectfont\sffamily
+\begin{tabularx}{\textwidth}{|>{\ttfamily}p{4.8cm}|Y|}
+\hline
+\rowcolor{headerTabla}
+\sffamily\textbf{Dato / herramienta} & \sffamily\textbf{Uso} \\
+\hline
+seed-10k-users.sql & Conjunto de 10.000 usuarios para la prueba de escala. \\ \hline
+\rowcolor{grisTecnico}
+locales es/en/pt & Verificación de cobertura de internacionalización. \\ \hline
+Dockerfile + docker-compose & Empaquetado monolítico y smoke tests post-deploy. \\ \hline
+\rowcolor{grisTecnico}
+backup-staging.dump & Restauración de respaldo y verificación de consistencia. \\ \hline
+\end{tabularx}
+
+\begin{NotaTecnica}
+La prueba de regresión \comando{TC-S5-040} re-ejecutó la totalidad de los casos
+automatizados de los sprints 1 a 4 sobre el artefacto de la \textit{Release} 2.0.0,
+confirmando la ausencia de retrocesos antes del cierre de versión.
+\end{NotaTecnica}
+
+% =============================================================================
+\clearpage
+\section{Reporte de Anomalías y Bugs (Bug Reports)}
+\label{sec:s5-bugs}
+
+\subsection{Registro Detallado de Defectos}
+\label{sec:s5-registro}
+
+\begin{FichaBug}{BUG-S5-001}{Las métricas de administración eran accesibles por cualquier usuario}
+\bugMeta{\sevCrit}{P1}{\texttt{admin} · control de acceso}{\resCerrado}
+\bugCampo{Entorno}{Backend perfil \texttt{prod}; staging.}
+\bugBloque{Pasos para reproducir}{1. Autenticarse como \texttt{PROFESSIONAL}. 2. Llamar a
+\comando{GET /api/admin/metrics/overview}.}
+\bugCampo{Resultado esperado}{\texttt{403 Forbidden}.}
+\bugCampo{Resultado real}{\texttt{200}: métricas globales expuestas a un usuario sin rol
+administrativo.}
+\bugBloque{Evidencia técnica}{\texttt{GET /api/admin/metrics/overview (role=PROFESSIONAL)
+$\rightarrow$ 200; sin anotación de autorización a nivel de método.}}
+\bugBloque{Análisis de causa raíz (RCA)}{El controlador de administración carecía de
+restricción de rol. \textbf{Corrección:} \texttt{@PreAuthorize("hasRole('ADMIN')")} en los
+endpoints de administración y prueba de seguridad que cubre la matriz de roles. Verificado
+por \comando{TC-S5-021} y \comando{TC-S5-034}.}
+\end{FichaBug}
+
+\begin{FichaBug}{BUG-S5-002}{Los registros de auditoría exponían tokens JWT}
+\bugMeta{\sevCrit}{P1}{\texttt{admin} · logs}{\resCerrado}
+\bugCampo{Entorno}{Backend perfil \texttt{prod}.}
+\bugBloque{Pasos para reproducir}{1. Generar eventos de login. 2. Consultar
+\comando{GET /api/admin/logs}. 3. Inspeccionar el contenido.}
+\bugCampo{Resultado esperado}{Eventos sin secretos.}
+\bugCampo{Resultado real}{Algunos eventos incluían el \texttt{Authorization: Bearer ey...}
+completo.}
+\bugBloque{Análisis de causa raíz (RCA)}{El interceptor de auditoría registraba las
+cabeceras sin filtrar. \textbf{Corrección:} lista de cabeceras a enmascarar
+(\texttt{Authorization}, \texttt{Cookie}) y redacción de patrones de token. Verificado por
+\comando{TC-S5-020} y \comando{TC-S5-035}.}
+\end{FichaBug}
+
+\begin{FichaBug}{BUG-S5-007}{Clave de servicio incrustada en el bundle del frontend}
+\bugMeta{\sevCrit}{P1}{\texttt{frontend} · build}{\resCerrado}
+\bugCampo{Entorno}{Frontend Vite; build de producción.}
+\bugBloque{Pasos para reproducir}{1. Generar el build. 2. Buscar la clave de servicio en
+\texttt{dist/assets}.}
+\bugCampo{Resultado esperado}{Solo claves públicas (anon).}
+\bugCampo{Resultado real}{La clave de servicio (privilegiada) quedaba incrustada en el
+bundle.}
+\bugBloque{Análisis de causa raíz (RCA)}{La variable se expuso con el prefijo
+\texttt{VITE\_} que Vite inyecta en el cliente. \textbf{Corrección:} se retiró el prefijo,
+la clave de servicio se usa solo en el backend y se rotó la clave comprometida. Verificado
+por \comando{TC-S5-036}.}
+\end{FichaBug}
+
+\begin{FichaBug}{BUG-S5-005}{La métrica de crecimiento producía división por cero}
+\bugMeta{\sevAlt}{P2}{\texttt{admin} · métricas}{\resCerrado}
+\bugCampo{Entorno}{Backend perfil \texttt{prod}.}
+\bugBloque{Pasos para reproducir}{1. Consultar growth cuando el periodo anterior es 0. 2.
+Observar el valor.}
+\bugCampo{Resultado esperado}{Valor definido (p. ej. 100\% o "n/d").}
+\bugCampo{Resultado real}{\texttt{Infinity}/\texttt{NaN} en la respuesta JSON.}
+\bugBloque{Análisis de causa raíz (RCA)}{División sin proteger el denominador cero.
+\textbf{Corrección:} caso especial para denominador 0 que devuelve un valor acotado.
+Verificado por \comando{TC-S5-001}.}
+\end{FichaBug}
+
+\begin{FichaBug}{BUG-S5-008}{Consulta de crecimiento sin índice provoca full scan}
+\bugMeta{\sevAlt}{P2}{\texttt{db} · rendimiento}{\resCerrado}
+\bugCampo{Entorno}{Backend perfil \texttt{prod}; 10.000 usuarios.}
+\bugBloque{Pasos para reproducir}{1. Cargar el dashboard a escala. 2. Medir la latencia y el
+plan SQL.}
+\bugCampo{Resultado esperado}{Latencia $<$ 1,5 s.}
+\bugCampo{Resultado real}{3,4 s con \textit{full scan} sobre la tabla de usuarios.}
+\bugBloque{Análisis de causa raíz (RCA)}{Faltaba un índice en \texttt{created\_at} usado por
+la agregación temporal. \textbf{Corrección:} migración que añade el índice; latencia final
+$\approx$ 420 ms. Verificado por \comando{TC-S5-038}.}
+\end{FichaBug}
+
+\begin{FichaBug}{BUG-S5-003}{Claves de traducción faltantes en portugués}
+\bugMeta{\sevMed}{P3}{\texttt{frontend} · i18n}{\resCerrado}
+\bugCampo{Entorno}{Frontend React 18 / i18next.}
+\bugBloque{Pasos para reproducir}{1. Cambiar el idioma a portugués. 2. Navegar por las
+vistas.}
+\bugCampo{Resultado esperado}{Toda la UI traducida.}
+\bugCampo{Resultado real}{Algunas vistas mostraban la clave cruda (p. ej.
+\texttt{portfolio.publish}).}
+\bugBloque{Análisis de causa raíz (RCA)}{Recursos de \texttt{pt} desactualizados respecto a
+\texttt{es}. \textbf{Corrección:} se completaron las claves y se añadió una verificación de
+cobertura i18n en CI. Verificado por \comando{TC-S5-039}.}
+\end{FichaBug}
+
+\begin{FichaBug}{BUG-S5-004}{El modo oscuro no persistía tras recargar}
+\bugMeta{\sevMed}{P3}{\texttt{frontend} · tema}{\resCerrado}
+\bugCampo{Entorno}{Frontend React 18.}
+\bugBloque{Pasos para reproducir}{1. Activar modo oscuro. 2. Recargar la página.}
+\bugCampo{Resultado esperado}{El tema oscuro permanece.}
+\bugCampo{Resultado real}{Volvía a claro al recargar.}
+\bugBloque{Análisis de causa raíz (RCA)}{El tema no se leía de \texttt{localStorage} al
+inicializar. \textbf{Corrección:} hidratación del tema al montar la aplicación. Verificado
+por \comando{TC-S5-008}.}
+\end{FichaBug}
+
+\begin{FichaBug}{BUG-S5-006}{El seeder duplicaba el catálogo al re-ejecutarse}
+\bugMeta{\sevMed}{P3}{\texttt{db} · seeders}{\resCerrado}
+\bugCampo{Entorno}{Backend perfil \texttt{prod}; PostgreSQL (Testcontainers).}
+\bugBloque{Pasos para reproducir}{1. Ejecutar el seeder dos veces. 2. Contar el catálogo.}
+\bugCampo{Resultado esperado}{Sin duplicados.}
+\bugCampo{Resultado real}{El catálogo se duplicaba.}
+\bugBloque{Análisis de causa raíz (RCA)}{El seeder hacía \texttt{INSERT} sin verificar
+existencia. \textbf{Corrección:} \texttt{INSERT ... ON CONFLICT DO NOTHING} sobre clave
+natural. Verificado por \comando{TC-S5-009}.}
+\end{FichaBug}
+
+\begin{FichaBug}{BUG-S5-009}{"Marcar todas como leídas" no actualiza el contador}
+\bugMeta{\sevBaj}{P4}{\texttt{frontend} · notificaciones}{\resCerrado}
+\bugCampo{Entorno}{Frontend React 18.}
+\bugBloque{Pasos para reproducir}{1. Tener notificaciones sin leer. 2. Pulsar "marcar todas
+como leídas".}
+\bugCampo{Resultado esperado}{El contador del icono baja a 0.}
+\bugCampo{Resultado real}{El backend marcaba leídas, pero el contador del icono persistía.}
+\bugBloque{Análisis de causa raíz (RCA)}{El estado del contador no se invalidaba tras la
+acción. \textbf{Corrección:} se refresca el contador tras \comando{read-all}. Verificado por
+\comando{TC-S5-023}.}
+\end{FichaBug}
+
+\subsection{Estado de Resolución y Resultados de Retesteo}
+\label{sec:s5-retesteo}
+
+\vspace{0.1cm}
+\noindent
+\renewcommand{\arraystretch}{1.3}
+\fontsize{8.5}{10.2}\selectfont\sffamily
+\begin{tabularx}{\textwidth}{|>{\ttfamily\bfseries\color{colorPrimario}}p{2.0cm}|c|>{\centering\arraybackslash}p{2.0cm}|>{\ttfamily}p{2.2cm}|Y|}
+\hline
+\rowcolor{headerTabla}
+\sffamily\textbf{ID} & \sffamily\textbf{Sev.} & \sffamily\textbf{Estado} & \sffamily\textbf{Retest} & \sffamily\textbf{Resultado} \\
+\hline
+BUG-S5-001 & \sevCrit & \resCerrado & TC-S5-021 & \bPass \\ \hline
+\rowcolor{grisTecnico}
+BUG-S5-002 & \sevCrit & \resCerrado & TC-S5-020 & \bPass \\ \hline
+BUG-S5-003 & \sevMed & \resCerrado & TC-S5-039 & \bPass \\ \hline
+\rowcolor{grisTecnico}
+BUG-S5-004 & \sevMed & \resCerrado & TC-S5-008 & \bPass \\ \hline
+BUG-S5-005 & \sevAlt & \resCerrado & TC-S5-001 & \bPass \\ \hline
+\rowcolor{grisTecnico}
+BUG-S5-006 & \sevMed & \resCerrado & TC-S5-009 & \bPass \\ \hline
+BUG-S5-007 & \sevCrit & \resCerrado & TC-S5-036 & \bPass \\ \hline
+\rowcolor{grisTecnico}
+BUG-S5-008 & \sevAlt & \resCerrado & TC-S5-038 & \bPass \\ \hline
+BUG-S5-009 & \sevBaj & \resCerrado & TC-S5-023 & \bPass \\ \hline
+\end{tabularx}
+
+% =============================================================================
+\clearpage
+\section{Reporte de Validación y Aprobación del Sprint}
+\label{sec:s5-validacion}
+
+\subsection{Métricas de Calidad del Sprint}
+\label{sec:s5-metricas}
+
+\barraCobertura{83}{Cobertura de líneas del backend (\texttt{admin}, \texttt{metrics}, \texttt{notifications})}
+\barraCobertura{77}{Cobertura de ramas del backend (control de acceso y agregaciones)}
+\barraCobertura{72}{Cobertura de componentes del frontend (dashboards, i18n y tema)}
+
+\vspace{0.2cm}
+\noindent
+\renewcommand{\arraystretch}{1.35}
+\fontsize{8.5}{10.2}\selectfont\sffamily
+\begin{tabularx}{\textwidth}{|>{\bfseries\color{colorPrimario}}p{6.0cm}|c|Y|}
+\hline
+\rowcolor{headerTabla}
+\sffamily\textbf{Métrica} & \sffamily\textbf{Valor} & \sffamily\textbf{Meta} \\
+\hline
+Tasa de aprobación de casos & 77,5\% & $\geq 75\%$ \\ \hline
+\rowcolor{grisTecnico}
+Densidad de defectos (def./caso) & 0,225 & $\leq 0,30$ \\ \hline
+Defectos críticos abiertos al cierre & 0 & 0 \\ \hline
+\rowcolor{grisTecnico}
+Defectos resueltos y verificados & 9 / 9 & 100\% \\ \hline
+Regresión de sprints previos & En verde & Sin retrocesos \\ \hline
+\end{tabularx}
+
+\subsection{Conclusión de Aceptación}
+\label{sec:s5-conclusion}
+
+\begin{Veredicto}
+\textbf{Sprint 5 — APROBADO.} El incremento de cierre cumplió sus objetivos: métricas
+exactas y protegidas por rol, internacionalización completa, persistencia de tema,
+\textit{seeders}/\textit{backups} íntegros y empaquetado monolítico verificado por
+\textit{smoke tests}. Los 3 defectos críticos (acceso a métricas, fuga de tokens en logs y
+secreto en el bundle) y los 6 restantes fueron corregidos y verificados, sin retrocesos en
+la regresión. \textbf{La Release 2.0.0 queda habilitada para producción.}
+\end{Veredicto}

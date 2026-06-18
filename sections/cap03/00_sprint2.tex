@@ -1,0 +1,589 @@
+% =============================================================================
+% CAPÍTULO 3 — PRUEBAS Y VALIDACIONES — SPRINT 2
+% =============================================================================
+\chapter{Pruebas y Validaciones — Sprint 2}
+\label{ch:sprint2}
+\resumenCapitulo{Verificación y validación del incremento de lógica de negocio: matriz de
+\textit{hard}/\textit{soft skills} con destacados ordenables, experiencia laboral con
+geolocalización y formación académica, junto con la validación de DTO y la integridad
+referencial. Se documentan 40 casos de prueba y 9 defectos.}
+
+% =============================================================================
+\section{Alcance y Objetivos de V\&V del Sprint}
+\label{sec:s2-alcance}
+
+El Sprint 2 incorporó las entidades transaccionales que dan cuerpo al perfil profesional.
+El objetivo de V\&V fue \textbf{garantizar la integridad de los datos de dominio} —reglas
+de unicidad, rangos válidos, relaciones referenciales y autorización por propietario— de
+modo que cada profesional controle exclusivamente sus propias habilidades, experiencia y
+formación.
+
+\subsection{Funcionalidades y Componentes Evaluados}
+\label{sec:s2-funcionalidades}
+
+\begin{itemize}
+    \item \textbf{Matriz de habilidades:} alta, edición y borrado de \textit{hard} y
+    \textit{soft skills} con nivel asociado, vía \ruta{/api/profiles/\{id\}/skills/hard}
+    y \ruta{/api/profiles/\{id\}/skills/soft}.
+    \item \textbf{Habilidades destacadas:} marcado y reordenamiento de \textit{top skills}
+    mediante \ruta{PATCH /api/skills/hard/\{id\}/top} y
+    \ruta{PATCH /api/profiles/\{id\}/skills/hard/top-order}.
+    \item \textbf{Etiquetas (tags):} catálogo compartido de etiquetas de habilidad
+    (\ruta{/api/skills/tags}).
+    \item \textbf{Experiencia laboral:} registro con \textbf{geolocalización}
+    (latitud/longitud, mapa Leaflet) y soporte de empleo actual sin fecha de fin.
+    \item \textbf{Formación académica:} registros académicos vía
+    \ruta{/api/v1/academic-records}.
+    \item \textbf{Reglas de dominio:} validación de DTO (Bean Validation) e integridad
+    referencial entre perfil, habilidad, etiqueta y experiencia.
+    \item \textbf{Interfaz:} formularios de habilidad/experiencia/educación, reordenamiento
+    \textit{drag-and-drop} (dnd-kit) y selección de ubicación en mapa.
+\end{itemize}
+
+\subsection{Criterios de Aceptación Globales del Sprint}
+\label{sec:s2-criterios}
+
+\vspace{0.1cm}
+\noindent
+\renewcommand{\arraystretch}{1.35}
+\fontsize{8.5}{10.2}\selectfont\sffamily
+\begin{tabularx}{\textwidth}{|>{\ttfamily\bfseries\color{colorPrimario}}p{2.0cm}|Y|c|}
+\hline
+\rowcolor{headerTabla}
+\sffamily\textbf{Criterio} & \sffamily\textbf{Descripción} & \sffamily\textbf{Estado} \\
+\hline
+CA-S2-01 & Un usuario solo puede crear, editar o borrar entidades de su propio perfil. & \bPass \\ \hline
+\rowcolor{grisTecnico}
+CA-S2-02 & No se admiten habilidades duplicadas ni fechas de experiencia incoherentes. & \bPass \\ \hline
+CA-S2-03 & El borrado de una entidad mantiene la integridad referencial (sin huérfanos). & \bPass \\ \hline
+\rowcolor{grisTecnico}
+CA-S2-04 & El reordenamiento de destacados persiste en el backend. & \bPass \\ \hline
+CA-S2-05 & Ningún defecto crítico permanece abierto al cierre del sprint. & \bPass \\ \hline
+\end{tabularx}
+
+\begin{Veredicto}
+Los cinco criterios se cumplieron. El defecto crítico de control de acceso
+(\comando{BUG-S2-001}, IDOR) fue corregido y verificado en la iteración.
+\end{Veredicto}
+
+% =============================================================================
+\clearpage
+\section{Trazabilidad de Requisitos}
+\label{sec:s2-trazabilidad}
+
+\subsection{Matriz de Trazabilidad (Historias de Perfil vs. Casos de Prueba)}
+\label{sec:s2-rtm}
+
+\begin{MatrizRTM}
+\rtmRow{RF-06}{Gestión de hard skills con nivel y etiquetas}{TC-S2-001, TC-S2-003, TC-S2-016, TC-S2-019, TC-S2-020, TC-S2-031}{BUG-S2-006}
+\rtmRow{RF-07}{Gestión de soft skills}{TC-S2-002, TC-S2-017, TC-S2-018}{—}
+\rtmRow{RF-08}{Habilidades destacadas y reordenamiento}{TC-S2-009, TC-S2-010, TC-S2-022, TC-S2-023, TC-S2-032}{BUG-S2-002, BUG-S2-009}
+\rtmRow{RF-09}{Catálogo de etiquetas de habilidad}{TC-S2-024, TC-S2-025, TC-S2-030}{BUG-S2-005}
+\rtmRow{RF-10}{Experiencia laboral con geolocalización}{TC-S2-005, TC-S2-006, TC-S2-007, TC-S2-026, TC-S2-033}{BUG-S2-003, BUG-S2-004}
+\rtmRow{RF-11}{Formación académica}{TC-S2-008, TC-S2-028, TC-S2-029, TC-S2-034}{—}
+\rtmRow{RNF-06}{Autorización por propietario del recurso (IDOR)}{TC-S2-036}{BUG-S2-001}
+\rtmRow{RNF-07}{Integridad referencial y borrado en cascada}{TC-S2-021, TC-S2-027}{BUG-S2-005}
+\rtmRow{RNF-08}{Saneamiento de entrada (XSS) en campos libres}{TC-S2-037, TC-S2-038}{BUG-S2-008}
+\rtmRow{RNF-09}{Rendimiento de carga del perfil}{TC-S2-040}{BUG-S2-007}
+\end{MatrizRTM}
+
+% =============================================================================
+\clearpage
+\section{Especificación y Diseño de Casos de Prueba}
+\label{sec:s2-casos}
+
+\subsection{Pruebas Unitarias y de Componentes}
+\label{sec:s2-unitarias}
+
+\begin{CatalogoTC}
+\tcRow{TC-S2-001}{Validación de nivel de habilidad en rango 1--5}{Unitaria}{Alta}{\bPass}
+\tcRow{TC-S2-002}{Rechazo de soft skill con nombre vacío}{Unitaria}{Media}{\bPass}
+\tcRow{TC-S2-003}{Validación de longitud del nombre de habilidad}{Unitaria}{Media}{\bPass}
+\tcRow{TC-S2-004}{Mapeo HardSkillRequest DTO hacia entidad}{Unitaria}{Media}{\bPass}
+\tcRow{TC-S2-005}{Fecha de inicio anterior a fecha de fin en experiencia}{Unitaria}{Alta}{\bFail}
+\tcRow{TC-S2-006}{Validación de rango de latitud/longitud}{Unitaria}{Alta}{\bFail}
+\tcRow{TC-S2-007}{Experiencia actual sin fecha de fin es válida}{Unitaria}{Media}{\bPass}
+\tcRow{TC-S2-008}{Campos requeridos en registro académico}{Unitaria}{Media}{\bPass}
+\tcRow{TC-S2-009}{Límite máximo de habilidades destacadas (5)}{Unitaria}{Media}{\bPass}
+\tcRow{TC-S2-010}{Recálculo de orden al reordenar destacados}{Unitaria}{Alta}{\bFail}
+\tcRow{TC-S2-011}{Render de lista de habilidades vacía (empty state)}{Componente}{Baja}{\bPass}
+\tcRow{TC-S2-012}{Render del distintivo de nivel de habilidad}{Componente}{Baja}{\bPass}
+\tcRow{TC-S2-013}{Formulario de experiencia valida coherencia de fechas}{Componente}{Media}{\bPass}
+\tcRow{TC-S2-014}{Mapa Leaflet renderiza marcador en coordenadas}{Componente}{Media}{\bPass}
+\tcRow{TC-S2-015}{Drag-and-drop (dnd-kit) actualiza el estado local}{Componente}{Media}{\bPass}
+\end{CatalogoTC}
+
+\begin{FichaTC}{TC-S2-005}{Fecha de inicio anterior a fecha de fin en experiencia}
+\tcMeta{Unitaria}{Alta}{\texttt{experience} · validador de DTO}{RF-10}
+\tcCampo{Precondiciones}{El DTO \texttt{ExperienceRequest} incluye \texttt{startDate} y
+\texttt{endDate} opcionales.}
+\tcCampo{Datos de prueba}{\texttt{startDate=2024-06-01}, \texttt{endDate=2023-01-01}
+(fin anterior al inicio).}
+\resetPasos
+\begin{tcPasos}
+\paso{Construir el DTO con fechas invertidas.}{El validador detecta la incoherencia.}
+\paso{Ejecutar la validación de Bean Validation.}{Devuelve violación \texttt{DATE\_RANGE\_INVALID}.}
+\paso{Probar el caso válido (fin posterior).}{Sin violaciones.}
+\end{tcPasos}
+\tcResultado{El rango de fechas incoherente se rechaza.}{Se aceptaba la experiencia con
+fin anterior al inicio. Ver \comando{BUG-S2-003}.}{\bFail}
+\end{FichaTC}
+
+\begin{FichaTC}{TC-S2-006}{Validación de rango de latitud y longitud}
+\tcMeta{Unitaria}{Alta}{\texttt{experience} · geolocalización}{RF-10}
+\tcCampo{Precondiciones}{La experiencia admite coordenadas opcionales para el mapa.}
+\tcCampo{Datos de prueba}{Lat válida \texttt{-17.39}; lat inválida \texttt{200.0}; lng
+inválida \texttt{-999.0}.}
+\resetPasos
+\begin{tcPasos}
+\paso{Validar coordenadas dentro de rango ([-90,90], [-180,180]).}{Aceptadas.}
+\paso{Validar latitud 200.0.}{Debe rechazarse por fuera de rango.}
+\paso{Validar longitud -999.0.}{Debe rechazarse por fuera de rango.}
+\end{tcPasos}
+\tcResultado{Solo se aceptan coordenadas geográficas válidas.}{Las coordenadas fuera de
+rango se persistían sin validar. Ver \comando{BUG-S2-004}.}{\bFail}
+\end{FichaTC}
+
+\begin{FichaTC}{TC-S2-010}{Recálculo de orden al reordenar habilidades destacadas}
+\tcMeta{Unitaria}{Alta}{\texttt{skills} · servicio de orden}{RF-08}
+\tcCampo{Precondiciones}{Existen 4 habilidades destacadas con órdenes 1..4.}
+\tcCampo{Datos de prueba}{Mover la habilidad de orden 4 a la posición 1.}
+\resetPasos
+\begin{tcPasos}
+\paso{Aplicar el reordenamiento.}{Las posiciones se reasignan como 1,2,3,4 sin huecos.}
+\paso{Consultar los órdenes resultantes.}{Deben ser contiguos y únicos.}
+\paso{Repetir varios reordenamientos.}{La secuencia permanece contigua.}
+\end{tcPasos}
+\tcResultado{El orden queda contiguo (1..n) tras reordenar.}{Quedaban índices no contiguos
+que rompían el orden visual. Ver \comando{BUG-S2-002}.}{\bFail}
+\end{FichaTC}
+
+\subsection{Pruebas de Integración (APIs, WebSockets, Servicios de Identidad)}
+\label{sec:s2-integracion}
+
+\begin{CatalogoTC}
+\tcRow{TC-S2-016}{POST hard skill devuelve 201}{Integración}{Alta}{\bPass}
+\tcRow{TC-S2-017}{POST soft skill devuelve 201}{Integración}{Alta}{\bPass}
+\tcRow{TC-S2-018}{POST habilidad duplicada devuelve 409}{Integración}{Media}{\bFail}
+\tcRow{TC-S2-019}{GET skills/hard por perfil devuelve la lista}{Integración}{Alta}{\bPass}
+\tcRow{TC-S2-020}{PUT actualiza nivel y etiquetas de una habilidad}{Integración}{Alta}{\bPass}
+\tcRow{TC-S2-021}{DELETE habilidad devuelve 204 y desvincula etiquetas}{Integración}{Alta}{\bFail}
+\tcRow{TC-S2-022}{PATCH /top marca habilidad como destacada}{Integración}{Media}{\bPass}
+\tcRow{TC-S2-023}{PATCH top-order reordena habilidades destacadas}{Integración}{Alta}{\bPass}
+\tcRow{TC-S2-024}{GET tags y tags/all devuelven el catálogo}{Integración}{Media}{\bPass}
+\tcRow{TC-S2-025}{POST tag nueva la añade al catálogo}{Integración}{Media}{\bPass}
+\tcRow{TC-S2-026}{POST experiencia con coordenadas la persiste}{Integración}{Alta}{\bPass}
+\tcRow{TC-S2-027}{Borrar perfil elimina en cascada sus entidades}{Integración}{Alta}{\bPass}
+\tcRow{TC-S2-028}{POST registro académico devuelve 201}{Integración}{Media}{\bPass}
+\tcRow{TC-S2-029}{GET registros académicos por perfil}{Integración}{Media}{\bPass}
+\tcRow{TC-S2-030}{Habilidad con etiqueta inexistente devuelve 400}{Integración}{Media}{\bPass}
+\end{CatalogoTC}
+
+\begin{TablaAPI}
+\textbf{Endpoint} & \texttt{POST /api/profiles/\{profileId\}/skills/hard} \\ \hline
+Cabeceras & \texttt{Authorization: Bearer <jwt>}, \texttt{Content-Type: application/json} \\ \hline
+\rowcolor{grisTecnico}
+Payload & \texttt{\{"name":"Spring Boot", "level":4, "tagIds":[12,15]\}} \\ \hline
+Código esperado & \texttt{201 Created} \\ \hline
+\rowcolor{grisTecnico}
+Caso negativo & Etiqueta inexistente $\rightarrow$ \texttt{400}; habilidad duplicada $\rightarrow$ \texttt{409}; perfil ajeno $\rightarrow$ \texttt{403}. \\ \hline
+\end{TablaAPI}
+
+\begin{FichaTC}{TC-S2-021}{DELETE de habilidad desvincula sus etiquetas}
+\tcMeta{Integración}{Alta}{\texttt{skills} + Testcontainers}{RNF-07}
+\tcCampo{Precondiciones}{Existe una hard skill con 2 etiquetas asociadas en la tabla puente.}
+\tcCampo{Datos de prueba}{\texttt{DELETE /api/skills/hard/\{skillId\}}.}
+\resetPasos
+\begin{tcPasos}
+\paso{Eliminar la habilidad.}{HTTP \texttt{204 No Content}.}
+\paso{Consultar la tabla puente skill--tag.}{No deben quedar filas para esa habilidad.}
+\paso{Verificar que las etiquetas del catálogo persisten.}{Las etiquetas siguen disponibles.}
+\end{tcPasos}
+\tcResultado{Las relaciones de la habilidad borrada se eliminan; las etiquetas del
+catálogo permanecen.}{Quedaban filas huérfanas en la tabla puente. Ver \comando{BUG-S2-005}.}{\bFail}
+\end{FichaTC}
+
+\begin{FichaTC}{TC-S2-027}{Borrar perfil elimina en cascada sus entidades}
+\tcMeta{Integración}{Alta}{\texttt{profile} · integridad referencial}{RNF-07}
+\tcCampo{Precondiciones}{Perfil con 5 habilidades, 2 experiencias y 1 registro académico.}
+\tcCampo{Datos de prueba}{\texttt{DELETE /api/profiles/\{profileId\}}.}
+\resetPasos
+\begin{tcPasos}
+\paso{Eliminar el perfil.}{HTTP \texttt{204}.}
+\paso{Consultar habilidades, experiencias y registros del perfil.}{Cero filas en todas.}
+\paso{Verificar que otros perfiles no se ven afectados.}{Intactos.}
+\end{tcPasos}
+\tcResultado{El borrado del perfil propaga en cascada a sus entidades hijas.}{Conforme; las
+claves foráneas con \texttt{ON DELETE CASCADE} operan correctamente.}{\bPass}
+\end{FichaTC}
+
+\begin{FichaTC}{TC-S2-016}{Alta de hard skill con nivel y etiquetas}
+\tcMeta{Integración}{Alta}{\texttt{skills} + Testcontainers}{RF-06}
+\tcCampo{Precondiciones}{Perfil existente; etiquetas 12 y 15 presentes en el catálogo.}
+\tcCampo{Datos de prueba}{\texttt{POST /api/profiles/\{id\}/skills/hard} con
+\texttt{\{"name":"Spring Boot","level":4,"tagIds":[12,15]\}}.}
+\resetPasos
+\begin{tcPasos}
+\paso{Enviar la creación con datos válidos.}{HTTP \texttt{201}.}
+\paso{Consultar las habilidades del perfil.}{Aparece "Spring Boot" con nivel 4.}
+\paso{Verificar las etiquetas vinculadas.}{Asociadas las etiquetas 12 y 15.}
+\end{tcPasos}
+\tcResultado{La habilidad se crea con su nivel y etiquetas.}{Conforme.}{\bPass}
+\end{FichaTC}
+
+\begin{FichaTC}{TC-S2-023}{Reordenamiento de destacados vía PATCH top-order}
+\tcMeta{Integración}{Alta}{\texttt{skills} · orden}{RF-08}
+\tcCampo{Precondiciones}{Perfil con 4 habilidades destacadas en orden 1..4.}
+\tcCampo{Datos de prueba}{Cuerpo con la nueva secuencia de \texttt{skillId} ordenados.}
+\resetPasos
+\begin{tcPasos}
+\paso{Enviar la nueva secuencia de orden.}{HTTP \texttt{200}.}
+\paso{Consultar el perfil.}{El orden persiste según lo enviado.}
+\paso{Recargar y verificar.}{El orden permanece tras recargar.}
+\end{tcPasos}
+\tcResultado{El nuevo orden de destacados persiste en el backend.}{Conforme tras corregir
+\comando{BUG-S2-009}.}{\bPass}
+\end{FichaTC}
+
+\begin{FichaTC}{TC-S2-026}{Alta de experiencia con coordenadas de geolocalización}
+\tcMeta{Integración}{Alta}{\texttt{experience} + Testcontainers}{RF-10}
+\tcCampo{Precondiciones}{Perfil existente; coordenadas válidas de Cochabamba.}
+\tcCampo{Datos de prueba}{\texttt{\{"company":"Byte Busters","lat":-17.39,"lng":-66.15,"current":true\}}.}
+\resetPasos
+\begin{tcPasos}
+\paso{Crear la experiencia con coordenadas y \texttt{current=true}.}{HTTP \texttt{201}.}
+\paso{Consultar la experiencia.}{Coordenadas y empleo actual sin fecha de fin.}
+\paso{Renderizar el mapa.}{Marcador en la ubicación correcta.}
+\end{tcPasos}
+\tcResultado{La experiencia con geolocalización se persiste y ubica.}{Conforme tras validar
+el rango de coordenadas (\comando{BUG-S2-004}).}{\bPass}
+\end{FichaTC}
+
+\subsection{Pruebas de Sistema y UI/UX}
+\label{sec:s2-sistema}
+
+\begin{CatalogoTC}
+\tcRow{TC-S2-031}{Añadir hard skill de extremo a extremo (UI)}{Sistema}{Alta}{\bPass}
+\tcRow{TC-S2-032}{Reordenar destacados con drag-and-drop}{Sistema}{Alta}{\bFail}
+\tcRow{TC-S2-033}{Añadir experiencia con selección en mapa}{Sistema}{Alta}{\bPass}
+\tcRow{TC-S2-034}{Añadir formación académica}{Sistema}{Media}{\bPass}
+\tcRow{TC-S2-035}{El formulario muestra errores de validación}{Sistema}{Media}{\bPass}
+\tcRow{TC-S2-036}{Usuario A no puede editar habilidades de usuario B}{Seguridad}{Crítica}{\bFail}
+\tcRow{TC-S2-037}{XSS en el nombre de la habilidad se escapa}{Seguridad}{Alta}{\bFail}
+\tcRow{TC-S2-038}{Envío masivo de habilidades es acotado}{Seguridad}{Media}{\bPass}
+\tcRow{TC-S2-039}{Estados de carga y vacío se muestran correctamente}{Sistema}{Baja}{\bPass}
+\tcRow{TC-S2-040}{GET perfil con 50 habilidades responde < 500 ms}{Rendimiento}{Media}{\bFail}
+\end{CatalogoTC}
+
+\begin{FichaTC}{TC-S2-036}{Usuario A no puede editar habilidades de usuario B (IDOR)}
+\tcMeta{Seguridad}{Crítica}{\texttt{skills} · autorización}{RNF-06}
+\tcCampo{Precondiciones}{Dos usuarios autenticados (A y B), cada uno con habilidades
+propias. Se conoce el \texttt{skillId} de una habilidad de B.}
+\tcCampo{Datos de prueba}{Sesión de A; \texttt{PUT /api/skills/hard/\{skillId\_de\_B\}}.}
+\resetPasos
+\begin{tcPasos}
+\paso{Autenticarse como usuario A.}{Sesión válida de A.}
+\paso{Enviar PUT sobre la habilidad de B.}{Debe responder \texttt{403 Forbidden}.}
+\paso{Consultar la habilidad de B.}{Permanece sin cambios.}
+\end{tcPasos}
+\tcResultado{La API impide modificar recursos de otro propietario.}{La habilidad de B se
+modificaba desde la sesión de A (IDOR). Ver \comando{BUG-S2-001}.}{\bFail}
+\end{FichaTC}
+
+\begin{FichaTC}{TC-S2-037}{XSS almacenado en el nombre de la habilidad}
+\tcMeta{Seguridad}{Alta}{\texttt{skills} · saneamiento}{RNF-08}
+\tcCampo{Precondiciones}{Formulario de alta de habilidad disponible.}
+\tcCampo{Datos de prueba}{Nombre: \texttt{<img src=x onerror=alert(1)>}.}
+\resetPasos
+\begin{tcPasos}
+\paso{Crear una habilidad con el payload como nombre.}{Se almacena el valor literal.}
+\paso{Renderizar el perfil que muestra la habilidad.}{El payload se escapa como texto.}
+\paso{Verificar la consola del navegador.}{No se ejecuta el script.}
+\end{tcPasos}
+\tcResultado{El contenido se muestra escapado, sin ejecución de script.}{En la primera
+ejecución el payload se ejecutaba al renderizar. Ver \comando{BUG-S2-008}.}{\bFail}
+\end{FichaTC}
+
+\begin{FichaTC}{TC-S2-040}{Carga del perfil con 50 habilidades por debajo de 500 ms}
+\tcMeta{Rendimiento}{Media}{\texttt{profile} · consulta agregada}{RNF-09}
+\tcCampo{Precondiciones}{Perfil sintético con 50 habilidades, cada una con 2--3 etiquetas.}
+\tcCampo{Datos de prueba}{\texttt{GET /api/profiles/\{profileId\}} (50 mediciones).}
+\resetPasos
+\begin{tcPasos}
+\paso{Solicitar el perfil repetidamente.}{Respuestas \texttt{200}.}
+\paso{Medir la latencia media y p95.}{Por debajo del umbral de 500 ms.}
+\paso{Inspeccionar el número de consultas SQL.}{Debe ser acotado (sin N+1).}
+\end{tcPasos}
+\tcResultado{La carga del perfil con etiquetas se mantiene bajo 500 ms.}{Se observó un
+patrón N+1 que elevaba la latencia a 1,3 s. Ver \comando{BUG-S2-007}.}{\bFail}
+\end{FichaTC}
+
+\begin{FichaTC}{TC-S2-031}{Añadir hard skill de extremo a extremo (UI)}
+\tcMeta{Sistema}{Alta}{\texttt{frontend} · formulario de skills}{RF-06}
+\tcCampo{Precondiciones}{Profesional autenticado en la vista de edición de perfil.}
+\tcCampo{Datos de prueba}{Habilidad "React", nivel 5, etiqueta "Frontend".}
+\resetPasos
+\begin{tcPasos}
+\paso{Abrir el formulario de nueva habilidad.}{Se muestra con campos válidos.}
+\paso{Completar nombre, nivel y etiqueta, y guardar.}{La habilidad aparece en la lista.}
+\paso{Recargar la página.}{La habilidad persiste.}
+\end{tcPasos}
+\tcResultado{La habilidad creada desde la UI se persiste y muestra.}{Conforme.}{\bPass}
+\end{FichaTC}
+
+\begin{FichaTC}{TC-S2-038}{El envío masivo de habilidades está acotado}
+\tcMeta{Seguridad}{Media}{\texttt{skills} · validación}{RNF-08}
+\tcCampo{Precondiciones}{Endpoint de creación de habilidades disponible.}
+\tcCampo{Datos de prueba}{Intento de crear 5.000 habilidades en ráfaga para un mismo perfil.}
+\resetPasos
+\begin{tcPasos}
+\paso{Lanzar la ráfaga de creación.}{El sistema aplica límite por perfil/tasa.}
+\paso{Observar las respuestas.}{Rechazo controlado tras el umbral.}
+\paso{Verificar el estado del perfil.}{Sin degradación ni datos basura masivos.}
+\end{tcPasos}
+\tcResultado{La creación masiva se acota sin afectar el servicio.}{Conforme; límite por
+perfil y validación de cantidad.}{\bPass}
+\end{FichaTC}
+
+% =============================================================================
+\section{Ejecución de Pruebas (Test Logs)}
+\label{sec:s2-ejecucion}
+
+\subsection{Resumen de Ejecución (Planificadas vs. Ejecutadas)}
+\label{sec:s2-resumen}
+
+\vspace{0.1cm}
+\noindent
+\renewcommand{\arraystretch}{1.35}
+\fontsize{8.5}{10.2}\selectfont\sffamily
+\begin{tabularx}{\textwidth}{|>{\bfseries\color{colorPrimario}}p{4.6cm}|c|Y|}
+\hline
+\rowcolor{headerTabla}
+\sffamily\textbf{Categoría} & \sffamily\textbf{Cant.} & \sffamily\textbf{Observación} \\
+\hline
+Casos planificados & 40 & Diseñados al inicio del sprint. \\ \hline
+\rowcolor{grisTecnico}
+Casos ejecutados & 40 & 100\% de ejecución. \\ \hline
+Casos aprobados (PASS) & 32 & 80,0\% de tasa de aprobación. \\ \hline
+\rowcolor{grisTecnico}
+Casos fallidos (FAIL) & 8 & Generaron reporte de defecto. \\ \hline
+Casos bloqueados (BLOCK) & 0 & Sin bloqueos. \\ \hline
+\end{tabularx}
+
+\vspace{0.3cm}
+\graficoEjecucion{32}{8}{0}{40}
+
+\subsection{Entornos y Datos de Prueba Utilizados}
+\label{sec:s2-datos}
+
+\vspace{0.1cm}
+\noindent
+\renewcommand{\arraystretch}{1.3}
+\fontsize{8.5}{10.2}\selectfont\sffamily
+\begin{tabularx}{\textwidth}{|>{\ttfamily}p{4.6cm}|c|Y|}
+\hline
+\rowcolor{headerTabla}
+\sffamily\textbf{Dato / cuenta de prueba} & \sffamily\textbf{Rol} & \sffamily\textbf{Uso} \\
+\hline
+ana.dev@test.io & PROFESSIONAL & Perfil A: alta de habilidades, experiencia y educación. \\ \hline
+\rowcolor{grisTecnico}
+bruno.qa@test.io & PROFESSIONAL & Perfil B: pruebas de control de acceso (IDOR). \\ \hline
+seed-skills.json & — & 50 habilidades sintéticas para la prueba de rendimiento. \\ \hline
+\rowcolor{grisTecnico}
+coords (-17.39, -66.15) & — & Cochabamba; verificación del marcador en mapa Leaflet. \\ \hline
+\end{tabularx}
+
+\begin{NotaTecnica}
+La prueba de rendimiento \comando{TC-S2-040} usó el conjunto \texttt{seed-skills.json} sobre
+PostgreSQL (Testcontainers) para reproducir el patrón N+1 de \comando{BUG-S2-007} de forma
+determinista.
+\end{NotaTecnica}
+
+% =============================================================================
+\clearpage
+\section{Reporte de Anomalías y Bugs (Bug Reports)}
+\label{sec:s2-bugs}
+
+\subsection{Registro Detallado de Defectos}
+\label{sec:s2-registro}
+
+\begin{FichaBug}{BUG-S2-001}{IDOR: edición de habilidades de otro propietario}
+\bugMeta{\sevCrit}{P1}{\texttt{skills} · autorización}{\resCerrado}
+\bugCampo{Entorno}{Backend perfil \texttt{prod}; Spring Security 6; staging.}
+\bugBloque{Pasos para reproducir}{1. Autenticarse como usuario A. 2. Obtener el
+\texttt{skillId} de una habilidad de B. 3. Enviar \comando{PUT /api/skills/hard/\{id\}} con
+sesión de A.}
+\bugCampo{Resultado esperado}{HTTP \texttt{403 Forbidden}.}
+\bugCampo{Resultado real}{HTTP \texttt{200}: la habilidad de B fue modificada por A.}
+\bugBloque{Evidencia técnica}{\texttt{UPDATE core.hard\_skill SET level=1 WHERE id=987;
+-- owner\_id no verificado contra el principal autenticado.}}
+\bugBloque{Análisis de causa raíz (RCA)}{El servicio actualizaba por \texttt{skillId} sin
+comprobar que la habilidad perteneciera al perfil del usuario autenticado.
+\textbf{Corrección:} se añadió la verificación de propiedad
+(\texttt{skill.profileId == principal.profileId}) y una comprobación en la cláusula
+\texttt{WHERE}. Verificado por \comando{TC-S2-036}.}
+\end{FichaBug}
+
+\begin{FichaBug}{BUG-S2-008}{XSS almacenado en el nombre de habilidad}
+\bugMeta{\sevAlt}{P2}{\texttt{frontend} · render de perfil}{\resCerrado}
+\bugCampo{Entorno}{Frontend React 18; navegador Chrome 124.}
+\bugBloque{Pasos para reproducir}{1. Crear habilidad con nombre
+\texttt{<img src=x onerror=alert(1)>}. 2. Visitar el perfil que la muestra.}
+\bugCampo{Resultado esperado}{El texto se muestra escapado.}
+\bugCampo{Resultado real}{Se ejecutaba el manejador \texttt{onerror} (alerta JavaScript).}
+\bugBloque{Análisis de causa raíz (RCA)}{Un componente usaba
+\texttt{dangerouslySetInnerHTML} para mostrar el nombre. \textbf{Corrección:} se sustituyó
+por renderizado de texto normal de React (escape por defecto) y se añadió validación de
+caracteres en el backend. Verificado por \comando{TC-S2-037}.}
+\end{FichaBug}
+
+\begin{FichaBug}{BUG-S2-003}{Experiencia acepta fecha de fin anterior al inicio}
+\bugMeta{\sevAlt}{P2}{\texttt{experience} · validación}{\resCerrado}
+\bugCampo{Entorno}{Backend perfil \texttt{dev}; prueba de integración.}
+\bugBloque{Pasos para reproducir}{1. \comando{POST experiencia} con
+\texttt{startDate>endDate}. 2. Observar la respuesta.}
+\bugCampo{Resultado esperado}{\texttt{400} por rango de fechas inválido.}
+\bugCampo{Resultado real}{\texttt{201}: la experiencia incoherente se persistía.}
+\bugBloque{Análisis de causa raíz (RCA)}{Faltaba una restricción de validación cruzada
+entre ambos campos. \textbf{Corrección:} se añadió una restricción a nivel de clase
+(\texttt{@StartBeforeEnd}). Verificado por \comando{TC-S2-005}.}
+\end{FichaBug}
+
+\begin{FichaBug}{BUG-S2-004}{Coordenadas geográficas fuera de rango aceptadas}
+\bugMeta{\sevMed}{P3}{\texttt{experience} · geolocalización}{\resCerrado}
+\bugCampo{Entorno}{Backend perfil \texttt{dev}.}
+\bugBloque{Pasos para reproducir}{1. \comando{POST experiencia} con \texttt{lat=200}. 2.
+Renderizar el mapa.}
+\bugCampo{Resultado esperado}{\texttt{400} por coordenada inválida.}
+\bugCampo{Resultado real}{Se persistía; el marcador caía fuera del mapa visible.}
+\bugBloque{Análisis de causa raíz (RCA)}{No había validación de rango. \textbf{Corrección:}
+restricciones \texttt{@Min/@Max} sobre latitud ([-90,90]) y longitud ([-180,180]).
+Verificado por \comando{TC-S2-006}.}
+\end{FichaBug}
+
+\begin{FichaBug}{BUG-S2-002}{Reordenamiento de destacados deja índices no contiguos}
+\bugMeta{\sevMed}{P3}{\texttt{skills} · orden}{\resCerrado}
+\bugCampo{Entorno}{Backend perfil \texttt{prod}.}
+\bugBloque{Pasos para reproducir}{1. Marcar 4 destacados. 2. Eliminar el segundo. 3.
+Reordenar. 4. Consultar los órdenes.}
+\bugCampo{Resultado esperado}{Órdenes contiguos 1..n.}
+\bugCampo{Resultado real}{Quedaban huecos (1,3,4) que alteraban el orden visual.}
+\bugBloque{Análisis de causa raíz (RCA)}{El borrado no recompactaba los órdenes.
+\textbf{Corrección:} \comando{PATCH top-order} ahora normaliza la secuencia tras cada
+operación. Verificado por \comando{TC-S2-010}.}
+\end{FichaBug}
+
+\begin{FichaBug}{BUG-S2-005}{El borrado de habilidad deja etiquetas huérfanas en la tabla puente}
+\bugMeta{\sevMed}{P3}{\texttt{skills} · integridad}{\resCerrado}
+\bugCampo{Entorno}{Backend perfil \texttt{prod}; PostgreSQL (Testcontainers).}
+\bugBloque{Pasos para reproducir}{1. Crear habilidad con 2 etiquetas. 2.
+\comando{DELETE habilidad}. 3. Consultar la tabla puente.}
+\bugCampo{Resultado esperado}{Sin filas para la habilidad borrada.}
+\bugCampo{Resultado real}{Filas huérfanas en la tabla puente skill--tag.}
+\bugBloque{Análisis de causa raíz (RCA)}{La FK de la tabla puente no tenía
+\texttt{ON DELETE CASCADE}. \textbf{Corrección:} migración que añade la cascada y limpieza
+de huérfanos existentes. Verificado por \comando{TC-S2-021}.}
+\end{FichaBug}
+
+\begin{FichaBug}{BUG-S2-006}{Habilidad duplicada permitida por diferencias de mayúsculas y espacios}
+\bugMeta{\sevBaj}{P4}{\texttt{skills} · unicidad}{\resCerrado}
+\bugCampo{Entorno}{Backend perfil \texttt{prod}.}
+\bugBloque{Pasos para reproducir}{1. Crear "Java". 2. Crear " java ". 3. Consultar el perfil.}
+\bugCampo{Resultado esperado}{La segunda se rechaza por duplicado.}
+\bugCampo{Resultado real}{Se creaban dos habilidades equivalentes.}
+\bugBloque{Análisis de causa raíz (RCA)}{La unicidad no normalizaba el nombre.
+\textbf{Corrección:} \textit{trim} y comparación insensible a mayúsculas antes de insertar.
+Verificado por \comando{TC-S2-018}.}
+\end{FichaBug}
+
+\begin{FichaBug}{BUG-S2-007}{Consulta N+1 al cargar habilidades con sus etiquetas}
+\bugMeta{\sevMed}{P3}{\texttt{profile} · persistencia}{\resCerrado}
+\bugCampo{Entorno}{Backend perfil \texttt{prod}; perfil con 50 habilidades.}
+\bugBloque{Pasos para reproducir}{1. \comando{GET perfil} con 50 habilidades. 2. Activar
+el log de SQL. 3. Contar las consultas.}
+\bugCampo{Resultado esperado}{Número de consultas acotado (1--2).}
+\bugCampo{Resultado real}{51 consultas (una por habilidad para sus etiquetas); 1,3 s.}
+\bugBloque{Análisis de causa raíz (RCA)}{Carga perezosa de etiquetas por habilidad.
+\textbf{Corrección:} se reescribió con un \texttt{JOIN} agregado en jOOQ que trae habilidad
+y etiquetas en una sola consulta. Latencia final $\approx$ 280 ms. Verificado por
+\comando{TC-S2-040}.}
+\end{FichaBug}
+
+\begin{FichaBug}{BUG-S2-009}{El reordenamiento drag-and-drop no persistía en el backend}
+\bugMeta{\sevAlt}{P2}{\texttt{frontend} · destacados}{\resCerrado}
+\bugCampo{Entorno}{Frontend React 18 / dnd-kit.}
+\bugBloque{Pasos para reproducir}{1. Reordenar destacados arrastrando. 2. Recargar la
+página. 3. Observar el orden.}
+\bugCampo{Resultado esperado}{El nuevo orden persiste tras recargar.}
+\bugCampo{Resultado real}{El orden volvía al estado previo (solo cambiaba en memoria).}
+\bugBloque{Análisis de causa raíz (RCA)}{El evento \texttt{onDragEnd} actualizaba el estado
+local pero no llamaba a \comando{PATCH top-order}. \textbf{Corrección:} se añadió la llamada
+al servicio con reversión optimista en caso de error. Verificado por \comando{TC-S2-032}.}
+\end{FichaBug}
+
+\subsection{Estado de Resolución y Resultados de Retesteo}
+\label{sec:s2-retesteo}
+
+\vspace{0.1cm}
+\noindent
+\renewcommand{\arraystretch}{1.3}
+\fontsize{8.5}{10.2}\selectfont\sffamily
+\begin{tabularx}{\textwidth}{|>{\ttfamily\bfseries\color{colorPrimario}}p{2.0cm}|c|>{\centering\arraybackslash}p{2.0cm}|>{\ttfamily}p{2.2cm}|Y|}
+\hline
+\rowcolor{headerTabla}
+\sffamily\textbf{ID} & \sffamily\textbf{Sev.} & \sffamily\textbf{Estado} & \sffamily\textbf{Retest} & \sffamily\textbf{Resultado} \\
+\hline
+BUG-S2-001 & \sevCrit & \resCerrado & TC-S2-036 & \bPass \\ \hline
+\rowcolor{grisTecnico}
+BUG-S2-002 & \sevMed & \resCerrado & TC-S2-010 & \bPass \\ \hline
+BUG-S2-003 & \sevAlt & \resCerrado & TC-S2-005 & \bPass \\ \hline
+\rowcolor{grisTecnico}
+BUG-S2-004 & \sevMed & \resCerrado & TC-S2-006 & \bPass \\ \hline
+BUG-S2-005 & \sevMed & \resCerrado & TC-S2-021 & \bPass \\ \hline
+\rowcolor{grisTecnico}
+BUG-S2-006 & \sevBaj & \resCerrado & TC-S2-018 & \bPass \\ \hline
+BUG-S2-007 & \sevMed & \resCerrado & TC-S2-040 & \bPass \\ \hline
+\rowcolor{grisTecnico}
+BUG-S2-008 & \sevAlt & \resCerrado & TC-S2-037 & \bPass \\ \hline
+BUG-S2-009 & \sevAlt & \resCerrado & TC-S2-032 & \bPass \\ \hline
+\end{tabularx}
+
+% =============================================================================
+\clearpage
+\section{Reporte de Validación y Aprobación del Sprint}
+\label{sec:s2-validacion}
+
+\subsection{Métricas de Calidad del Sprint}
+\label{sec:s2-metricas}
+
+\barraCobertura{82}{Cobertura de líneas del backend (módulos \texttt{skills}, \texttt{experience}, \texttt{education})}
+\barraCobertura{76}{Cobertura de ramas del backend (validaciones de dominio)}
+\barraCobertura{69}{Cobertura de componentes del frontend (formularios y reordenamiento)}
+
+\vspace{0.2cm}
+\noindent
+\renewcommand{\arraystretch}{1.35}
+\fontsize{8.5}{10.2}\selectfont\sffamily
+\begin{tabularx}{\textwidth}{|>{\bfseries\color{colorPrimario}}p{6.0cm}|c|Y|}
+\hline
+\rowcolor{headerTabla}
+\sffamily\textbf{Métrica} & \sffamily\textbf{Valor} & \sffamily\textbf{Meta} \\
+\hline
+Tasa de aprobación de casos & 80,0\% & $\geq 80\%$ \\ \hline
+\rowcolor{grisTecnico}
+Densidad de defectos (def./caso) & 0,225 & $\leq 0,30$ \\ \hline
+Defectos críticos abiertos al cierre & 0 & 0 \\ \hline
+\rowcolor{grisTecnico}
+Defectos resueltos y verificados & 9 / 9 & 100\% \\ \hline
+Eficiencia de remoción de defectos & 100\% & $\geq 95\%$ \\ \hline
+\end{tabularx}
+
+\subsection{Conclusión de Aceptación}
+\label{sec:s2-conclusion}
+
+\begin{Veredicto}
+\textbf{Sprint 2 — APROBADO.} Se ejecutaron los 40 casos con una tasa de aprobación del
+80,0\%. El defecto crítico de control de acceso (IDOR) y los 8 restantes fueron corregidos
+y verificados dentro de la iteración. Las entidades de dominio (habilidades, experiencia y
+formación) quedan validadas en integridad y autorización.
+\end{Veredicto}

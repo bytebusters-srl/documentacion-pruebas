@@ -1,66 +1,81 @@
 % 02_layout.tex
-% Geometría, Encabezados y Trazabilidad (IEEE 1012-2024)
+% Geometría, Encabezados, Títulos y Metadatos PDF
+% Documento de Pruebas y Validaciones (V&V) — IEEE 1012-2024 · ISO/IEC/IEEE 15289:2024
 
 % 1. Configuración de Márgenes Exactos
 \geometry{
     a4paper,
-    inner=3cm,       
-    outer=2cm,       
-    top=2.5cm,       
-    bottom=2.5cm,    
-    includehead,     
-    includefoot,     
-    headheight=28pt, 
-    headsep=0.4cm,   
-    footskip=1.0cm   
+    inner=2.5cm,
+    outer=2.5cm,
+    top=2.5cm,
+    bottom=2.5cm,
+    includehead,
+    includefoot,
+    headheight=28pt,
+    headsep=0.4cm,
+    footskip=1.0cm
 }
-\onehalfspacing    
+\onehalfspacing
 
-% Formato de Capítulo - Estilo Clásico de LaTeX
+% 2. Jerarquía de Títulos (idéntica al Manual Técnico)
 \titleformat{\chapter}[display]
-  {\sffamily\bfseries\color{colorTitle}} % Formato general del bloque
-  {\huge\chaptertitlename\ \thechapter}     % "Capítulo X" (tamaño grande)
-  {20pt}                                    % Separación entre el número y el título
-  {\Huge}                                   % Formato específico del título del capítulo
-\titlespacing*{\chapter}{0pt}{50pt}{40pt}
+  {\sffamily\bfseries\color{colorPrimario}}
+  {\filright\fontsize{13}{15}\selectfont\color{grisISO}\MakeUppercase{Capítulo \thechapter}}
+  {0.35cm}
+  {\fontsize{25}{29}\selectfont\filright}
+  []
+\titlespacing*{\chapter}{0pt}{55pt}{24pt}
 
+% \resumenCapitulo{texto}: sinopsis breve bajo el título del capítulo.
+\newcommand{\resumenCapitulo}[1]{%
+  \vspace{0.5cm}%
+  {\color{colorAcento}\rule{2.5cm}{2pt}}\par
+  \vspace{0.45cm}%
+  {\normalfont\sffamily\fontsize{11}{15}\selectfont\color{grisISO!95!black}%
+   \itshape #1\par}%
+  \clearpage}
+
+% Subtítulos: Helvetica, 14 pt, Negrita
 \titleformat{\section}[hang]
-  {\sffamily\bfseries\fontsize{14}{16.8}\selectfont\color{colorTitle}}
+  {\sffamily\bfseries\fontsize{14}{16.8}\selectfont\color{colorPrimario}}
   {\thesection.}
   {1em}{}
 
-% 1. Definimos las variables con valores por defecto
-\newcommand{\currentDocID}{QA-V\&V-000}
-\newcommand{\currentDocEstado}{Borrador}
+% Sub-subtítulos algo más compactos
+\titleformat{\subsection}[hang]
+  {\sffamily\bfseries\fontsize{12}{14.4}\selectfont\color{colorPrimario!90!black}}
+  {\thesubsection.}
+  {0.75em}{}
 
-% 2. Creamos comandos para que el usuario pueda actualizarlas en el main.tex
+% 3. Variables de trazabilidad documental. Se redefinen desde main.tex.
+\newcommand{\currentDocID}{QA-VV-000}
+\newcommand{\currentDocEstado}{Borrador}
 \newcommand{\setDocID}[1]{\renewcommand{\currentDocID}{#1}}
 \newcommand{\setDocEstado}[1]{\renewcommand{\currentDocEstado}{#1}}
 
 \pagestyle{fancy}
-\fancyhf{} 
-
-% Redefinimos marcas por si usas \leftmark en el futuro
+\fancyhf{}
 \renewcommand{\chaptermark}[1]{\markboth{#1}{}}
 \renewcommand{\sectionmark}[1]{\markright{#1}}
 
-% Encabezado: Logo (Izq) | Variables Dinámicas (Der)
+% Encabezado: Logo (Izq) | Capítulo + Estado (Der)
 \fancyhead[L]{\includegraphics[height=0.5cm, keepaspectratio]{assets/img/bytebusters/logo_horizontal.png}}
-\fancyhead[R]{\sffamily\footnotesize\textcolor{colorPrimario}{\textbf{ID: \currentDocID\ | Estado: \textit{\currentDocEstado}}}}
+\fancyhead[R]{\sffamily\footnotesize\textcolor{colorPrimario}{\textbf{\leftmark\ | Estado: \currentDocEstado}}}
 
-% Pie de Página: Firmas Digitales (Izq) | Paginación y Versión (Der)
-\fancyfoot[L]{\sffamily\footnotesize\textcolor{grisISO}{SM: J.D. Pardo Pozo | QA Lead: C.B. Quispe Flores}}
-\fancyfoot[R]{\sffamily\footnotesize\textcolor{grisISO}{Pág. \thepage\ de \pageref{LastPage}}}
+% Pie de Página: ID Documental (Izq) | Paginación (Der)
+\fancyfoot[L]{\sffamily\footnotesize\textcolor{grisISO}{\currentDocID\ | Confidencial - Byte Busters S.R.L.}}
+\fancyfoot[R]{\sffamily\footnotesize\textcolor{grisISO}{Página \thepage\ de \pageref{LastPage}}}
 
 \renewcommand{\headrulewidth}{0.4pt}
 \renewcommand{\footrulewidth}{0.4pt}
 \renewcommand{\headrule}{\hbox to\headwidth{\color{grisISO}\leaders\hrule height \headrulewidth\hfill}}
 \renewcommand{\footrule}{\hbox to\headwidth{\color{grisISO}\leaders\hrule height \footrulewidth\hfill}}
 
+% 4. Configuración de Metadatos y Enlaces
 \hypersetup{
-    colorlinks=true, 
-    linkcolor=colorPrimario, 
-    urlcolor=colorPrimario, 
-    pdftitle={Documentación V\&V - IEEE 1012},
+    colorlinks=true,
+    linkcolor=colorPrimario,
+    urlcolor=colorPrimario,
+    pdftitle={Documento de Pruebas y Validaciones (V\&V) - IEEE 1012-2024},
     pdfauthor={Byte Busters S.R.L.}
-    }
+}

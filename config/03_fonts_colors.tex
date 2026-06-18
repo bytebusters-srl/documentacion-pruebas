@@ -1,25 +1,48 @@
 % 03_fonts_colors.tex
-% Configuración de Tipografía y Paleta de Colores de Pruebas
+% Configuración de Tipografía y Paleta de Colores
 
-\renewcommand{\rmdefault}{ptm} 
-\renewcommand{\sfdefault}{phv} 
-\renewcommand{\ttdefault}{pcr} 
+% 1. Configuración de Tipografía Base
+\renewcommand{\rmdefault}{ptm} % Cuerpo de Texto: Serif (Times) - 11pt
+\renewcommand{\sfdefault}{phv} % Títulos/Subtítulos: Sans-serif (Helvetica)
+\renewcommand{\ttdefault}{pcr} % Comandos/Código: Monospace (Courier New)
 
-% Paleta Corporativa
-\definecolor{colorTitle}{HTML}{072040}
-\definecolor{colorPrimario}{HTML}{1D79F2}   % Azul Corporativo
-\definecolor{colorSecundario}{HTML}{9DEB99} % Verde
+% 2. Paleta de Colores Corporativa (Byte Busters)
+\definecolor{colorPrimario}{HTML}{080852}   % Azul Corporativo / Cyan
+\definecolor{colorSecundario}{HTML}{4CAF50} % Verde
 \definecolor{colorAcento}{HTML}{FFC107}     % Amarillo
 
-% Colores de Estado de Pruebas (Pass/Fail)
-\definecolor{bgPass}{HTML}{9DEB99}          % Verde Éxito
-\definecolor{bgFail}{HTML}{F44336}          % Rojo Fallo
-\definecolor{bgBlocked}{HTML}{9E9E9E}       % Gris Bloqueado
+% 3. Paleta Semántica para Manual Técnico
+\definecolor{bgNota}{HTML}{BBDDFC}          % Fondo Notas
+\definecolor{bordeNotaTecnica}{HTML}{2196F3}% Borde azul para Notas Técnicas
+\definecolor{bgAdvertencia}{HTML}{FFEBEE}   % Rojo para Alertas de Seguridad
+\definecolor{grisISO}{HTML}{5D6363}         % Gris para cabeceras/pies
+\definecolor{grisTecnico}{HTML}{F5F5F5}     % Fondo para bloques de código
+\definecolor{headerTabla}{HTML}{BBDDFC}     % Fondo para cabeceras de tablas API
 
-% Colores para Tablas de Datos
-\definecolor{headerTabla}{HTML}{BFDAF7}     % Fondo cabeceras
-\definecolor{grisTecnico}{HTML}{F5F5F5}     % Celdas alternadas y fondos
-\definecolor{grisISO}{HTML}{5D6363}
+% 4. Paleta para Diagramas (Modelo C4, DER, Secuencia)
+\definecolor{c4Persona}{HTML}{08427B}       % Actores / Personas (azul oscuro)
+\definecolor{c4Sistema}{HTML}{1168BD}       % Sistema en foco (azul C4)
+\definecolor{c4Contenedor}{HTML}{438DD5}    % Contenedores internos
+\definecolor{c4Componente}{HTML}{85BBF0}    % Componentes
+\definecolor{c4Externo}{HTML}{999999}       % Sistemas externos (gris)
+\definecolor{c4Datos}{HTML}{2E7D32}         % Almacenes de datos (verde BD)
+\definecolor{c4BordeLim}{HTML}{444444}      % Bordes de límites de sistema
+\definecolor{flujoInicio}{HTML}{4CAF50}     % Nodos de inicio/fin en flujos
+\definecolor{flujoDecision}{HTML}{FFC107}   % Rombos de decisión
+\definecolor{codeKeyword}{HTML}{080852}     % Palabras clave en bloques de código
+\definecolor{codeComment}{HTML}{5D6363}     % Comentarios
+\definecolor{codeString}{HTML}{2E7D32}      % Cadenas
+\definecolor{bgFail}{HTML}{E53935}          % Nodos de error/fallo en flujos
 
-\definecolor{bgNota}{HTML}{4992F2}          % Fondo Notas
-\definecolor{bordeNotaTecnica}{HTML}{4992F2}% Borde azul para Notas Técnicas
+% 5. Paleta de Estados de Ejecución de Pruebas (Pass/Fail/Blocked)
+\definecolor{bgPass}{HTML}{2E7D32}          % Verde Éxito (PASS)
+\definecolor{bgBlocked}{HTML}{9E9E9E}       % Gris Bloqueado (BLOCKED)
+\definecolor{bgSkip}{HTML}{FB8C00}          % Naranja Omitido (SKIPPED)
+
+% 6. Paleta de Severidad de Defectos (escala estándar de bug tracking)
+\definecolor{sevCritica}{HTML}{B71C1C}      % Bloqueante / Crítica
+\definecolor{sevAlta}{HTML}{E64A19}         % Alta / Mayor
+\definecolor{sevMedia}{HTML}{F9A825}        % Media
+\definecolor{sevBaja}{HTML}{1565C0}         % Baja / Menor
+\definecolor{prioP1}{HTML}{B71C1C}
+\definecolor{filaZebra}{HTML}{EEF4FB}       % Zebra suave para tablas largas

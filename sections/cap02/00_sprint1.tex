@@ -1,0 +1,693 @@
+% =============================================================================
+% CAPÍTULO 2 — PRUEBAS Y VALIDACIONES — SPRINT 1
+% =============================================================================
+\chapter{Pruebas y Validaciones — Sprint 1}
+\label{ch:sprint1}
+\resumenCapitulo{Verificación y validación del incremento de cimientos: identidad
+federada con Supabase Auth, registro diferenciado por rol, flujos OTP de operaciones
+sensibles y la cadena de filtros de seguridad JWT. Se documentan 40 casos de prueba y 9
+defectos con análisis de causa raíz.}
+
+% =============================================================================
+\section{Alcance y Objetivos de V\&V del Sprint}
+\label{sec:s1-alcance}
+
+El Sprint 1 entregó la columna vertebral de seguridad de EthosHub. Desde la perspectiva de
+V\&V, el objetivo central fue \textbf{garantizar que ningún recurso protegido sea accesible
+sin una identidad válida} y que el ciclo de vida de las credenciales (registro, inicio de
+sesión, recuperación y operaciones sensibles vía OTP) sea robusto frente a entradas
+maliciosas o malformadas.
+
+\subsection{Funcionalidades y Componentes Evaluados}
+\label{sec:s1-funcionalidades}
+
+\begin{itemize}
+    \item \textbf{Identidad federada:} integración con \textbf{Supabase Auth} como
+    proveedor de identidad (IdP) y sincronización de perfil local vía el \textit{endpoint}
+    \ruta{POST /api/v1/auth/oauth/sync}.
+    \item \textbf{Registro diferenciado por rol:} alta de cuentas \texttt{PROFESSIONAL} y
+    \texttt{RECRUITER} mediante \ruta{POST /api/v1/auth/register}.
+    \item \textbf{Autenticación:} \ruta{POST /api/v1/auth/login} con emisión de cookie
+    de sesión y verificación de credenciales.
+    \item \textbf{Operaciones sensibles con OTP:} cambio de correo
+    (\texttt{request-email-change} y \texttt{confirm-email-change}), cambio de
+    contraseña y solicitud de baja de cuenta, todos protegidos con código de un solo uso.
+    \item \textbf{Recuperación de acceso:} flujo \texttt{forgot-password} (request,
+    verify-otp, reset).
+    \item \textbf{Blindaje perimetral:} cadena de filtros de Spring Security que valida el
+    JWT en cada petición y deriva el rol de usuario.
+    \item \textbf{Cimiento de interfaz:} \textit{hook} \texttt{useAuthFlow}, formularios de
+    login/registro, \texttt{ProtectedRoute} y \textit{store} de autenticación (Zustand).
+\end{itemize}
+
+\subsection{Criterios de Aceptación Globales del Sprint}
+\label{sec:s1-criterios}
+
+\vspace{0.1cm}
+\noindent
+\renewcommand{\arraystretch}{1.35}
+\fontsize{8.5}{10.2}\selectfont\sffamily
+\begin{tabularx}{\textwidth}{|>{\ttfamily\bfseries\color{colorPrimario}}p{2.0cm}|Y|c|}
+\hline
+\rowcolor{headerTabla}
+\sffamily\textbf{Criterio} & \sffamily\textbf{Descripción} & \sffamily\textbf{Estado} \\
+\hline
+CA-S1-01 & Todo \textit{endpoint} no público responde \texttt{401} sin un JWT válido. & \bPass \\ \hline
+\rowcolor{grisTecnico}
+CA-S1-02 & El registro rechaza correos duplicados y contraseñas que no cumplan la política de complejidad. & \bPass \\ \hline
+CA-S1-03 & Las operaciones sensibles exigen un OTP vigente de un solo uso. & \bPass \\ \hline
+\rowcolor{grisTecnico}
+CA-S1-04 & La interfaz redirige a la vista correcta según el rol autenticado. & \bPass \\ \hline
+CA-S1-05 & Ningún defecto de severidad crítica permanece abierto al cierre del sprint. & \bPass \\ \hline
+\end{tabularx}
+
+\begin{Veredicto}
+Los cinco criterios de aceptación globales se cumplieron. Los dos defectos críticos
+detectados (\comando{BUG-S1-003} y \comando{BUG-S1-005}) fueron corregidos y verificados
+dentro de la misma iteración.
+\end{Veredicto}
+
+% =============================================================================
+\clearpage
+\section{Trazabilidad de Requisitos}
+\label{sec:s1-trazabilidad}
+
+\subsection{Matriz de Trazabilidad (Historias de Perfil vs. Casos de Prueba)}
+\label{sec:s1-rtm}
+
+La matriz vincula cada requisito del sprint con las historias de usuario, los casos de
+prueba que lo verifican y los defectos detectados, conformando la trazabilidad
+bidireccional exigida por IEEE 1012-2024.
+
+\begin{MatrizRTM}
+\rtmRow{RF-01}{Registro de cuenta diferenciado por rol (profesional/reclutador)}{TC-S1-002, TC-S1-011, TC-S1-017, TC-S1-018, TC-S1-033, TC-S1-034}{BUG-S1-001, BUG-S1-007}
+\rtmRow{RF-02}{Inicio de sesión con credenciales y emisión de sesión}{TC-S1-019, TC-S1-020, TC-S1-031, TC-S1-040}{BUG-S1-004}
+\rtmRow{RF-03}{Recuperación de contraseña con OTP}{TC-S1-025, TC-S1-026, TC-S1-006, TC-S1-007}{BUG-S1-002}
+\rtmRow{RF-04}{Cambio de correo y contraseña con OTP}{TC-S1-021, TC-S1-022, TC-S1-027, TC-S1-028}{—}
+\rtmRow{RF-05}{Sincronización de perfil tras login OAuth}{TC-S1-023, TC-S1-024}{BUG-S1-008}
+\rtmRow{RNF-01}{Protección perimetral de la API por JWT}{TC-S1-009, TC-S1-010, TC-S1-029, TC-S1-030, TC-S1-038}{BUG-S1-003}
+\rtmRow{RNF-02}{Confidencialidad de la sesión y cookies seguras}{TC-S1-035, TC-S1-032}{BUG-S1-005, BUG-S1-006}
+\rtmRow{RNF-03}{Resistencia a inyección y XSS en autenticación}{TC-S1-036, TC-S1-037}{—}
+\rtmRow{RNF-04}{Política de complejidad de contraseñas}{TC-S1-001, TC-S1-013}{BUG-S1-007}
+\rtmRow{RNF-05}{Rendimiento del inicio de sesión}{TC-S1-040}{—}
+\end{MatrizRTM}
+
+% =============================================================================
+\clearpage
+\section{Especificación y Diseño de Casos de Prueba}
+\label{sec:s1-casos}
+
+Se diseñaron \textbf{40 casos de prueba} aplicando partición de equivalencia y análisis de
+valores límite (ISO/IEC/IEEE 29119). El catálogo completo se lista a continuación; las
+fichas forenses de los casos representativos siguen en cada subsección.
+
+\subsection{Pruebas Unitarias y de Componentes}
+\label{sec:s1-unitarias}
+
+\begin{CatalogoTC}
+\tcRow{TC-S1-001}{Validación de política de contraseña fuerte}{Unitaria}{Alta}{\bPass}
+\tcRow{TC-S1-002}{Validación de formato de email en RegisterRequest}{Unitaria}{Alta}{\bPass}
+\tcRow{TC-S1-003}{Derivación de rol PROFESSIONAL desde metadata}{Unitaria}{Alta}{\bPass}
+\tcRow{TC-S1-004}{Derivación de rol RECRUITER desde metadata}{Unitaria}{Alta}{\bPass}
+\tcRow{TC-S1-005}{Rechazo de rol inexistente o nulo (UserRoleTest)}{Unitaria}{Media}{\bPass}
+\tcRow{TC-S1-006}{Generación de OTP de 6 dígitos numéricos}{Unitaria}{Alta}{\bPass}
+\tcRow{TC-S1-007}{Expiración de OTP tras superar el TTL}{Unitaria}{Alta}{\bFail}
+\tcRow{TC-S1-008}{OTP persistido con hash, nunca en texto plano}{Componente}{Alta}{\bPass}
+\tcRow{TC-S1-009}{Parsing de JWT válido (claims sub, email, role)}{Unitaria}{Alta}{\bPass}
+\tcRow{TC-S1-010}{Rechazo de JWT con firma inválida}{Unitaria}{Crítica}{\bPass}
+\tcRow{TC-S1-011}{Mapeo RegisterRequest DTO hacia entidad de perfil}{Unitaria}{Media}{\bPass}
+\tcRow{TC-S1-012}{useAuthFlow: campo email requerido}{Componente}{Media}{\bPass}
+\tcRow{TC-S1-013}{useAuthFlow: contraseñas no coincidentes}{Componente}{Media}{\bPass}
+\tcRow{TC-S1-014}{Renderizado del formulario de login}{Componente}{Media}{\bPass}
+\tcRow{TC-S1-015}{Render condicional de campos según rol}{Componente}{Baja}{\bPass}
+\tcRow{TC-S1-016}{Store Zustand limpia la sesión en logout}{Componente}{Alta}{\bFail}
+\end{CatalogoTC}
+
+\clearpage
+\begin{FichaTC}{TC-S1-001}{Validación de política de contraseña fuerte}
+\tcMeta{Unitaria}{Alta}{\texttt{auth} · validador de DTO}{RNF-04}
+\tcCampo{Precondiciones}{El validador \texttt{@ValidPassword} está activo en
+\texttt{RegisterRequest}. No se requiere base de datos ni contexto web.}
+\tcCampo{Datos de prueba}{Conjunto de equivalencia: \texttt{"Abc12345\$"} (válida),
+\texttt{"abc"} (corta), \texttt{"abcdefgh"} (sin dígito/mayúscula),
+\texttt{"12345678"} (solo dígitos).}
+\resetPasos
+\begin{tcPasos}
+\paso{Invocar el validador con la contraseña válida.}{Devuelve \texttt{true} (sin violaciones de restricción).}
+\paso{Invocar con cada contraseña inválida.}{Devuelve \texttt{false} y mensaje de violación específico.}
+\paso{Verificar el mensaje localizado de la violación.}{Indica el requisito incumplido (longitud, dígito, mayúscula).}
+\end{tcPasos}
+\tcResultado{El validador acepta solo contraseñas $\geq 8$ caracteres con mayúscula,
+minúscula y dígito.}{Comportamiento conforme tras la corrección de \comando{BUG-S1-007}.}{\bPass}
+\end{FichaTC}
+
+\begin{FichaTC}{TC-S1-007}{Expiración de OTP tras superar el TTL}
+\tcMeta{Unitaria}{Alta}{\texttt{auth} · servicio OTP}{RF-03}
+\tcCampo{Precondiciones}{Se genera un OTP con marca de tiempo de emisión. El TTL
+configurado es de 10 minutos.}
+\tcCampo{Datos de prueba}{Reloj simulado (\texttt{Clock} inyectable) avanzado a
+\texttt{emisión + 11 min}.}
+\resetPasos
+\begin{tcPasos}
+\paso{Generar el OTP y registrar su instante de emisión.}{OTP creado y persistido con hash.}
+\paso{Avanzar el reloj simulado 11 minutos.}{El instante actual supera el TTL.}
+\paso{Validar el OTP recibido.}{La validación debe rechazar el código por expiración.}
+\end{tcPasos}
+\tcResultado{El OTP caducado se rechaza con error \texttt{OTP\_EXPIRED}.}{El OTP fue
+aceptado pese a haber expirado; el TTL no se evaluaba. Ver \comando{BUG-S1-002}.}{\bFail}
+\end{FichaTC}
+
+\begin{FichaTC}{TC-S1-010}{Rechazo de JWT con firma inválida}
+\tcMeta{Unitaria}{Crítica}{\texttt{security} · decodificador JWT}{RNF-01}
+\tcCampo{Precondiciones}{El decodificador está configurado con el JWK público de Supabase.}
+\tcCampo{Datos de prueba}{Token bien formado cuyo \textit{payload} fue alterado tras la
+firma (firma no coincide con el contenido).}
+\resetPasos
+\begin{tcPasos}
+\paso{Construir un JWT válido y modificar un \textit{claim} del payload.}{El token queda con firma inconsistente.}
+\paso{Pasar el token al decodificador.}{Lanza \texttt{JwtException} (firma inválida).}
+\paso{Verificar que no se establece contexto de seguridad.}{\texttt{SecurityContext} permanece anónimo.}
+\end{tcPasos}
+\tcResultado{El token manipulado es rechazado sin autenticar la petición.}{Rechazo
+correcto; no se contamina el contexto de seguridad.}{\bPass}
+\end{FichaTC}
+
+\begin{FichaTC}{TC-S1-016}{El store de autenticación limpia la sesión en logout}
+\tcMeta{Componente}{Alta}{\texttt{store/authStore} (Zustand)}{RNF-02}
+\tcCampo{Precondiciones}{Existe un usuario autenticado en el \textit{store} con token y
+datos de perfil hidratados.}
+\tcCampo{Datos de prueba}{Estado inicial \texttt{\{ user: \{...\}, token: "ey..." \}}.}
+\resetPasos
+\begin{tcPasos}
+\paso{Renderizar un componente que consume el store.}{Muestra los datos del usuario.}
+\paso{Disparar la acción \texttt{logout()}.}{Debe vaciar \texttt{user} y \texttt{token}.}
+\paso{Re-consultar el store.}{\texttt{user} y \texttt{token} deben ser \texttt{null}.}
+\end{tcPasos}
+\tcResultado{Tras \texttt{logout()} el store queda sin datos de sesión.}{El \texttt{user}
+persistía en memoria tras el logout (sesión fantasma). Ver \comando{BUG-S1-006}.}{\bFail}
+\end{FichaTC}
+
+\begin{FichaTC}{TC-S1-003}{Derivación del rol PROFESSIONAL desde la metadata del IdP}
+\tcMeta{Unitaria}{Alta}{\texttt{auth} · UserRole}{RF-01}
+\tcCampo{Precondiciones}{El token del IdP incluye un \textit{claim} de rol en su metadata.}
+\tcCampo{Datos de prueba}{Metadata con \texttt{role="PROFESSIONAL"}.}
+\resetPasos
+\begin{tcPasos}
+\paso{Derivar el rol desde la metadata.}{Devuelve \texttt{UserRole.PROFESSIONAL}.}
+\paso{Probar con \texttt{role="RECRUITER"}.}{Devuelve \texttt{UserRole.RECRUITER}.}
+\paso{Probar con un rol desconocido.}{Lanza error de validación.}
+\end{tcPasos}
+\tcResultado{El rol se deriva correctamente o se rechaza si es inválido.}{Conforme con
+\texttt{UserRoleTest}.}{\bPass}
+\end{FichaTC}
+
+\begin{FichaTC}{TC-S1-006}{Generación de OTP de 6 dígitos numéricos}
+\tcMeta{Unitaria}{Alta}{\texttt{auth} · servicio OTP}{RF-03}
+\tcCampo{Precondiciones}{El generador de OTP está disponible.}
+\tcCampo{Datos de prueba}{1.000 generaciones consecutivas de OTP.}
+\resetPasos
+\begin{tcPasos}
+\paso{Generar 1.000 OTP.}{Cada uno tiene exactamente 6 dígitos.}
+\paso{Validar el rango (000000--999999).}{Todos dentro del rango.}
+\paso{Analizar la distribución.}{Sin sesgo evidente; fuente aleatoria segura.}
+\end{tcPasos}
+\tcResultado{Los OTP son numéricos de 6 dígitos y suficientemente aleatorios.}{Conforme.}{\bPass}
+\end{FichaTC}
+
+\clearpage
+\subsection{Pruebas de Integración (APIs, WebSockets, Servicios de Identidad)}
+\label{sec:s1-integracion}
+
+\begin{CatalogoTC}
+\tcRow{TC-S1-017}{POST /register profesional devuelve 201}{Integración}{Alta}{\bPass}
+\tcRow{TC-S1-018}{POST /register con email duplicado devuelve 409}{Integración}{Alta}{\bFail}
+\tcRow{TC-S1-019}{POST /login con credenciales válidas devuelve 200 + cookie}{Integración}{Alta}{\bPass}
+\tcRow{TC-S1-020}{POST /login con credenciales inválidas devuelve 401}{Integración}{Alta}{\bPass}
+\tcRow{TC-S1-021}{POST /verify-otp con código correcto devuelve 200}{Integración}{Alta}{\bPass}
+\tcRow{TC-S1-022}{POST /verify-otp con código incorrecto devuelve 400}{Integración}{Alta}{\bPass}
+\tcRow{TC-S1-023}{POST /oauth/sync crea perfil para usuario nuevo}{Integración}{Alta}{\bPass}
+\tcRow{TC-S1-024}{POST /oauth/sync no duplica perfil existente}{Integración}{Alta}{\bFail}
+\tcRow{TC-S1-025}{POST /forgot-password/request envía correo de recuperación}{Integración}{Media}{\bPass}
+\tcRow{TC-S1-026}{POST /forgot-password/reset con token válido cambia clave}{Integración}{Alta}{\bPass}
+\tcRow{TC-S1-027}{Flujo change-email (request + confirm) actualiza correo}{Integración}{Media}{\bPass}
+\tcRow{TC-S1-028}{PATCH /change-password con clave actual correcta}{Integración}{Alta}{\bPass}
+\tcRow{TC-S1-029}{GET endpoint protegido sin token devuelve 401}{Integración}{Crítica}{\bPass}
+\tcRow{TC-S1-030}{GET endpoint protegido con token válido devuelve 200}{Integración}{Alta}{\bPass}
+\end{CatalogoTC}
+
+A continuación se documentan en formato de prueba de API los contratos más relevantes.
+
+\clearpage
+\begin{TablaAPI}
+\textbf{Endpoint} & \texttt{POST /api/v1/auth/register} \\ \hline
+Cabeceras & \texttt{Content-Type: application/json} \\ \hline
+\rowcolor{grisTecnico}
+Payload & \texttt{\{"email":"ana.dev@test.io", "password":"Abc12345\$", "role":"PROFESSIONAL", "fullName":"Ana Dev"\}} \\ \hline
+Código esperado & \texttt{201 Created} \\ \hline
+\rowcolor{grisTecnico}
+Respuesta & \texttt{\{"profileId":"...", "role":"PROFESSIONAL"\}} \\ \hline
+Caso negativo & Email duplicado $\rightarrow$ \texttt{409 Conflict}; payload inválido $\rightarrow$ \texttt{400}. \\ \hline
+\end{TablaAPI}
+
+\begin{FichaTC}{TC-S1-017}{Registro de profesional devuelve 201 y crea perfil}
+\tcMeta{Integración}{Alta}{\texttt{AuthController} + Testcontainers}{RF-01}
+\tcCampo{Precondiciones}{PostgreSQL efímero levantado por Testcontainers; tabla de
+perfiles vacía; correo de prueba no registrado.}
+\tcCampo{Datos de prueba}{\texttt{POST /api/v1/auth/register} con cuerpo:
+\texttt{\{"email":"ana.dev@test.io","password":"Abc12345\$","role":"PROFESSIONAL","fullName":"Ana Dev"\}}}
+\resetPasos
+\begin{tcPasos}
+\paso{Enviar la petición de registro.}{Respuesta HTTP \texttt{201 Created}.}
+\paso{Consultar la tabla de perfiles.}{Existe una fila con el correo y rol \texttt{PROFESSIONAL}.}
+\paso{Verificar que la contraseña no se almacena en claro.}{El campo de credencial está cifrado/delegado al IdP.}
+\end{tcPasos}
+\tcResultado{Se crea el perfil profesional y se responde 201.}{Conforme; el perfil se
+persiste con el rol correcto.}{\bPass}
+\end{FichaTC}
+
+\begin{FichaTC}{TC-S1-018}{Registro con email duplicado devuelve 409}
+\tcMeta{Integración}{Alta}{\texttt{AuthController} + Testcontainers}{RF-01}
+\tcCampo{Precondiciones}{Existe ya un perfil con el correo \texttt{ana.dev@test.io}.}
+\tcCampo{Datos de prueba}{Reintento de registro con \texttt{"email":"Ana.Dev@test.io"}
+(misma dirección con distinta capitalización).}
+\resetPasos
+\begin{tcPasos}
+\paso{Registrar el correo en minúsculas.}{HTTP \texttt{201}.}
+\paso{Reintentar con el mismo correo capitalizado distinto.}{Debe responder \texttt{409 Conflict}.}
+\paso{Verificar el número de filas en la tabla.}{Debe permanecer en 1.}
+\end{tcPasos}
+\tcResultado{El segundo registro se rechaza con 409 y no duplica el perfil.}{Se creó un
+segundo perfil por comparación sensible a mayúsculas. Ver \comando{BUG-S1-001}.}{\bFail}
+\end{FichaTC}
+
+\begin{FichaTC}{TC-S1-029}{Endpoint protegido sin token devuelve 401}
+\tcMeta{Integración}{Crítica}{\texttt{AuthControllerSecurityTest}}{RNF-01}
+\tcCampo{Precondiciones}{La cadena de filtros de Spring Security está activa con la
+configuración de producción.}
+\tcCampo{Datos de prueba}{\texttt{GET /api/v1/profiles/\{id\}} sin cabecera
+\texttt{Authorization} ni cookie de sesión.}
+\resetPasos
+\begin{tcPasos}
+\paso{Emitir la petición sin credenciales.}{HTTP \texttt{401 Unauthorized}.}
+\paso{Verificar el cuerpo de error.}{No revela información del recurso solicitado.}
+\paso{Repetir con cookie de sesión vencida.}{También responde \texttt{401}.}
+\end{tcPasos}
+\tcResultado{Todo acceso sin identidad válida se rechaza con 401.}{Conforme con la matriz
+de permisos.}{\bPass}
+\end{FichaTC}
+
+\begin{FichaTC}{TC-S1-019}{Login con credenciales válidas emite la cookie de sesión}
+\tcMeta{Integración}{Alta}{\texttt{AuthController} + Testcontainers}{RF-02}
+\tcCampo{Precondiciones}{Existe el usuario \texttt{ana.dev@test.io} con contraseña válida.}
+\tcCampo{Datos de prueba}{\texttt{POST /api/v1/auth/login} con
+\texttt{\{"email":"ana.dev@test.io","password":"Abc12345\$"\}}.}
+\resetPasos
+\begin{tcPasos}
+\paso{Enviar las credenciales correctas.}{HTTP \texttt{200 OK}.}
+\paso{Inspeccionar la cabecera \texttt{Set-Cookie}.}{Contiene la cookie de sesión con atributos seguros.}
+\paso{Reutilizar la cookie en un endpoint protegido.}{Acceso concedido.}
+\end{tcPasos}
+\tcResultado{El login válido devuelve 200 y una cookie de sesión utilizable.}{Conforme tras
+la corrección de \comando{BUG-S1-005}.}{\bPass}
+\end{FichaTC}
+
+\begin{FichaTC}{TC-S1-021}{Verificación de OTP con código correcto}
+\tcMeta{Integración}{Alta}{\texttt{auth} · OTP}{RF-04}
+\tcCampo{Precondiciones}{Se solicitó un cambio de operación sensible y se generó un OTP
+vigente.}
+\tcCampo{Datos de prueba}{\texttt{POST /verify-otp} con el código de 6 dígitos emitido.}
+\resetPasos
+\begin{tcPasos}
+\paso{Enviar el OTP correcto dentro del TTL.}{HTTP \texttt{200}.}
+\paso{Reintentar con el mismo OTP ya consumido.}{HTTP \texttt{400} (un solo uso).}
+\paso{Verificar el estado de la operación.}{La operación sensible queda autorizada una vez.}
+\end{tcPasos}
+\tcResultado{El OTP válido autoriza la operación una única vez.}{Conforme; el OTP se invalida
+tras el primer uso.}{\bPass}
+\end{FichaTC}
+
+\begin{FichaTC}{TC-S1-023}{Sincronización de perfil tras login OAuth crea el perfil}
+\tcMeta{Integración}{Alta}{\texttt{AuthServiceOAuthSyncTest}}{RF-05}
+\tcCampo{Precondiciones}{Usuario autenticado en Supabase sin perfil local previo.}
+\tcCampo{Datos de prueba}{\texttt{POST /api/v1/auth/oauth/sync} con el token del IdP.}
+\resetPasos
+\begin{tcPasos}
+\paso{Invocar la sincronización con un usuario nuevo.}{Se crea el perfil local.}
+\paso{Verificar el mapeo de datos (email, nombre, rol).}{Coinciden con los del IdP.}
+\paso{Repetir la sincronización.}{No duplica el perfil (idempotente).}
+\end{tcPasos}
+\tcResultado{La primera sincronización crea el perfil y las siguientes son idempotentes.}{La
+idempotencia se garantizó tras corregir \comando{BUG-S1-008}.}{\bPass}
+\end{FichaTC}
+
+\subsection{Pruebas de Sistema y UI/UX}
+\label{sec:s1-sistema}
+
+\begin{CatalogoTC}
+\tcRow{TC-S1-031}{Flujo de login UI con redirección por rol}{Sistema}{Alta}{\bPass}
+\tcRow{TC-S1-032}{Persistencia de sesión tras recargar la página}{Sistema}{Alta}{\bPass}
+\tcRow{TC-S1-033}{Registro UI de profesional de extremo a extremo}{Sistema}{Alta}{\bPass}
+\tcRow{TC-S1-034}{Registro UI de reclutador de extremo a extremo}{Sistema}{Alta}{\bPass}
+\tcRow{TC-S1-035}{Logout limpia cookie y redirige a /login}{Sistema}{Alta}{\bPass}
+\tcRow{TC-S1-036}{Inyección SQL en el campo email de login}{Seguridad}{Crítica}{\bPass}
+\tcRow{TC-S1-037}{XSS reflejado en el nombre de usuario}{Seguridad}{Alta}{\bPass}
+\tcRow{TC-S1-038}{JWT con algoritmo "none" es rechazado}{Seguridad}{Crítica}{\bFail}
+\tcRow{TC-S1-039}{Ruta protegida sin sesión redirige a /login}{Sistema}{Alta}{\bBlock}
+\tcRow{TC-S1-040}{Latencia de login por debajo de 800 ms (p95)}{Rendimiento}{Media}{\bPass}
+\end{CatalogoTC}
+
+\clearpage
+\begin{FichaTC}{TC-S1-036}{Inyección SQL en el campo de correo del login}
+\tcMeta{Seguridad}{Crítica}{\texttt{auth} · capa de persistencia jOOQ}{RNF-03}
+\tcCampo{Precondiciones}{Existe al menos un usuario válido en la base de datos de staging.}
+\tcCampo{Datos de prueba}{Email: \texttt{' OR '1'='1' --} ; contraseña: cualquiera.}
+\resetPasos
+\begin{tcPasos}
+\paso{Enviar el login con el \textit{payload} de inyección en el correo.}{La consulta parametrizada de jOOQ no interpola el payload.}
+\paso{Observar la respuesta.}{HTTP \texttt{401}, sin acceso concedido.}
+\paso{Inspeccionar el log de SQL.}{Se usa \textit{prepared statement}; el payload viaja como valor literal.}
+\end{tcPasos}
+\tcResultado{La inyección no concede acceso ni altera la consulta.}{Conforme; jOOQ
+parametriza la consulta y neutraliza el payload.}{\bPass}
+\end{FichaTC}
+
+\begin{FichaTC}{TC-S1-038}{JWT con algoritmo "none" es rechazado}
+\tcMeta{Seguridad}{Crítica}{\texttt{security} · decodificador JWT}{RNF-01}
+\tcCampo{Precondiciones}{La API espera tokens firmados con RS256 emitidos por Supabase.}
+\tcCampo{Datos de prueba}{Token con cabecera \texttt{\{"alg":"none"\}} y sin firma, con un
+\textit{claim} \texttt{role:"ADMIN"} forjado.}
+\resetPasos
+\begin{tcPasos}
+\paso{Construir el token "none" con rol administrativo.}{Token sin firma.}
+\paso{Adjuntarlo a una petición a un recurso administrativo.}{La API debe responder \texttt{401}.}
+\paso{Verificar el contexto de seguridad.}{No debe autenticarse como ADMIN.}
+\end{tcPasos}
+\tcResultado{El token sin firma se rechaza siempre.}{La configuración inicial aceptaba
+\texttt{alg:none}, permitiendo escalada de privilegios. Ver \comando{BUG-S1-003}.}{\bFail}
+\end{FichaTC}
+
+\begin{FichaTC}{TC-S1-040}{Latencia de inicio de sesión por debajo de 800 ms (p95)}
+\tcMeta{Rendimiento}{Media}{\texttt{AuthController} · staging}{RNF-05}
+\tcCampo{Precondiciones}{Entorno de staging con base de datos poblada con 5.000 perfiles
+sintéticos.}
+\tcCampo{Datos de prueba}{200 peticiones de login concurrentes (10 hilos) con credenciales
+válidas.}
+\resetPasos
+\begin{tcPasos}
+\paso{Lanzar la carga de 200 logins.}{Todas responden \texttt{200}.}
+\paso{Medir la distribución de latencias.}{Percentil 95 por debajo del umbral.}
+\paso{Registrar p50, p95 y p99.}{p50 = 210 ms, p95 = 640 ms, p99 = 780 ms.}
+\end{tcPasos}
+\tcResultado{p95 $<$ 800 ms bajo carga moderada.}{p95 medido = 640 ms. Conforme.}{\bPass}
+\end{FichaTC}
+
+\begin{FichaTC}{TC-S1-031}{Flujo de login UI con redirección por rol}
+\tcMeta{Sistema}{Alta}{\texttt{frontend} · useAuthFlow}{RF-02}
+\tcCampo{Precondiciones}{Aplicación en staging; cuentas de profesional y reclutador
+disponibles.}
+\tcCampo{Datos de prueba}{Credenciales de \texttt{ana.dev@test.io} (PROFESSIONAL) y
+\texttt{recruiter.qa@test.io} (RECRUITER).}
+\resetPasos
+\begin{tcPasos}
+\paso{Iniciar sesión como profesional.}{Redirige al \textit{dashboard} de profesional.}
+\paso{Cerrar sesión e iniciar como reclutador.}{Redirige a la vista de Talent Discovery.}
+\paso{Verificar el estado del store de auth.}{Refleja el rol correcto.}
+\end{tcPasos}
+\tcResultado{La UI redirige según el rol autenticado.}{Conforme; el \textit{hook}
+\texttt{useAuthFlow} resuelve la ruta por rol.}{\bPass}
+\end{FichaTC}
+
+\begin{FichaTC}{TC-S1-037}{XSS reflejado en el nombre de usuario es escapado}
+\tcMeta{Seguridad}{Alta}{\texttt{frontend} · render de perfil}{RNF-03}
+\tcCampo{Precondiciones}{Formulario de registro/edición con campo de nombre visible.}
+\tcCampo{Datos de prueba}{Nombre: \texttt{<script>alert('xss')</script>}.}
+\resetPasos
+\begin{tcPasos}
+\paso{Registrar/editar el nombre con el payload.}{Se almacena como texto.}
+\paso{Renderizar la cabecera que muestra el nombre.}{El payload se escapa.}
+\paso{Verificar la consola del navegador.}{No se ejecuta script.}
+\end{tcPasos}
+\tcResultado{El nombre se muestra escapado, sin ejecución.}{Conforme; React escapa el
+contenido por defecto.}{\bPass}
+\end{FichaTC}
+
+% =============================================================================
+\clearpage
+\section{Ejecución de Pruebas (Test Logs)}
+\label{sec:s1-ejecucion}
+
+\subsection{Resumen de Ejecución (Planificadas vs. Ejecutadas)}
+\label{sec:s1-resumen}
+
+\vspace{0.1cm}
+\noindent
+\renewcommand{\arraystretch}{1.35}
+\fontsize{8.5}{10.2}\selectfont\sffamily
+\begin{tabularx}{\textwidth}{|>{\bfseries\color{colorPrimario}}p{4.6cm}|c|Y|}
+\hline
+\rowcolor{headerTabla}
+\sffamily\textbf{Categoría} & \sffamily\textbf{Cant.} & \sffamily\textbf{Observación} \\
+\hline
+Casos planificados & 40 & Diseñados al inicio del sprint. \\ \hline
+\rowcolor{grisTecnico}
+Casos ejecutados & 40 & 100\% de ejecución. \\ \hline
+Casos aprobados (PASS) & 33 & 82,5\% de tasa de aprobación. \\ \hline
+\rowcolor{grisTecnico}
+Casos fallidos (FAIL) & 6 & Generaron reporte de defecto. \\ \hline
+Casos bloqueados (BLOCK) & 1 & TC-S1-039 bloqueado por BUG-S1-003 hasta su corrección. \\ \hline
+\end{tabularx}
+
+\vspace{0.3cm}
+\graficoEjecucion{33}{6}{1}{40}
+
+\subsection{Entornos y Datos de Prueba Utilizados}
+\label{sec:s1-datos}
+
+Las pruebas de integración se ejecutaron sobre PostgreSQL efímero (Testcontainers); las de
+sistema y seguridad, sobre el entorno de \textbf{staging} con la instancia de pruebas de
+Supabase Auth. La tabla siguiente resume las cuentas sintéticas empleadas.
+
+\vspace{0.2cm}
+\noindent
+\renewcommand{\arraystretch}{1.3}
+\fontsize{8.5}{10.2}\selectfont\sffamily
+\begin{tabularx}{\textwidth}{|>{\ttfamily}p{4.6cm}|c|Y|}
+\hline
+\rowcolor{headerTabla}
+\sffamily\textbf{Cuenta de prueba} & \sffamily\textbf{Rol} & \sffamily\textbf{Uso} \\
+\hline
+ana.dev@test.io & PROFESSIONAL & Registro, login, cambio de credenciales. \\ \hline
+\rowcolor{grisTecnico}
+recruiter.qa@test.io & RECRUITER & Registro diferenciado y redirección por rol. \\ \hline
+otp.user@test.io & PROFESSIONAL & Flujos OTP (forgot-password, change-email). \\ \hline
+\rowcolor{grisTecnico}
+attacker@test.io & — & Pruebas de seguridad (SQLi, XSS, JWT tampering). \\ \hline
+\end{tabularx}
+
+\begin{NotaTecnica}
+Las credenciales y correos listados son \textbf{ficticios} y existen únicamente en la base
+de datos de staging. Ningún dato de producción se utilizó durante la ejecución de pruebas.
+\end{NotaTecnica}
+
+% =============================================================================
+\clearpage
+\section{Reporte de Anomalías y Bugs (Bug Reports)}
+\label{sec:s1-bugs}
+
+\subsection{Registro Detallado de Defectos}
+\label{sec:s1-registro}
+
+Se registraron \textbf{9 defectos} durante el Sprint 1. A continuación se documentan con
+calidad forense (entorno, reproducción, evidencia técnica y análisis de causa raíz).
+
+\begin{FichaBug}{BUG-S1-003}{Tokens JWT con \texttt{alg:none} aceptados por la API}
+\bugMeta{\sevCrit}{P1}{\texttt{security} · JWT}{\resCerrado}
+\bugCampo{Entorno}{Backend \texttt{ethoshub} perfil \texttt{prod}; Spring Security 6;
+Java 17. Detectado en staging, API \texttt{v1}.}
+\bugBloque{Pasos para reproducir}{1. Forjar un JWT con cabecera
+\texttt{\{"alg":"none","typ":"JWT"\}} y \textit{claim} \texttt{role:"ADMIN"}, sin firma.
+2. Llamar a \comando{GET /api/admin/metrics/overview} con
+\texttt{Authorization: Bearer <token>}. 3. Observar la respuesta.}
+\bugCampo{Resultado esperado}{HTTP \texttt{401}: el token sin firma debe rechazarse.}
+\bugCampo{Resultado real}{HTTP \texttt{200}: la API atendió la petición como administrador.}
+\bugBloque{Evidencia técnica}{\texttt{DEBUG o.s.s.oauth2.jwt --- Decoded JWT without
+signature verification (alg=none). SecurityContext authenticated as ROLE\_ADMIN.}}
+\bugBloque{Análisis de causa raíz (RCA)}{El \texttt{NimbusJwtDecoder} se construyó sin
+restringir explícitamente los algoritmos admitidos, por lo que aceptaba la familia
+\texttt{none}. \textbf{Corrección:} se fijó \texttt{JwsAlgorithms.RS256} como único
+algoritmo permitido y se validó el \textit{issuer} contra el proyecto Supabase. Verificado
+por re-ejecución de \comando{TC-S1-038}.}
+\end{FichaBug}
+
+\begin{FichaBug}{BUG-S1-005}{Cookie de sesión sin atributos \texttt{HttpOnly} y \texttt{Secure}}
+\bugMeta{\sevCrit}{P1}{\texttt{security} · sesión}{\resCerrado}
+\bugCampo{Entorno}{Backend perfil \texttt{prod}; navegador Chrome 124 sobre HTTPS de staging.}
+\bugBloque{Pasos para reproducir}{1. Iniciar sesión vía \comando{POST /api/v1/auth/login}.
+2. Inspeccionar la cookie de sesión en \textit{DevTools $\rightarrow$ Application}.
+3. Verificar los atributos de la cookie.}
+\bugCampo{Resultado esperado}{La cookie tiene \texttt{HttpOnly}, \texttt{Secure} y
+\texttt{SameSite=Strict}.}
+\bugCampo{Resultado real}{La cookie carecía de \texttt{HttpOnly} y \texttt{Secure},
+quedando legible por JavaScript y transmisible por HTTP.}
+\bugBloque{Análisis de causa raíz (RCA)}{La construcción de la cookie no establecía los
+atributos de seguridad. \textbf{Corrección:} se configuró
+\texttt{ResponseCookie.from(...).httpOnly(true).secure(true).sameSite("Strict")}.
+Verificado por re-ejecución de \comando{TC-S1-035}.}
+\end{FichaBug}
+
+\begin{FichaBug}{BUG-S1-002}{El OTP no expira al superar su TTL}
+\bugMeta{\sevAlt}{P2}{\texttt{auth} · servicio OTP}{\resCerrado}
+\bugCampo{Entorno}{Backend perfil \texttt{dev}; prueba unitaria con \texttt{Clock} simulado.}
+\bugBloque{Pasos para reproducir}{1. Solicitar un OTP de recuperación. 2. Esperar (o
+simular) 11 minutos. 3. Enviar el OTP a \comando{POST /forgot-password/verify-otp}.}
+\bugCampo{Resultado esperado}{HTTP \texttt{400} con código \texttt{OTP\_EXPIRED}.}
+\bugCampo{Resultado real}{HTTP \texttt{200}: el OTP caducado seguía siendo válido.}
+\bugBloque{Análisis de causa raíz (RCA)}{El servicio comparaba solo el valor del código,
+sin evaluar \texttt{expiresAt} contra \texttt{Instant.now()}. \textbf{Corrección:} se
+añadió la validación temporal y la invalidación del OTP tras un primer uso. Verificado por
+\comando{TC-S1-007}.}
+\end{FichaBug}
+
+\begin{FichaBug}{BUG-S1-001}{Registro duplicado por comparación de correo sensible a mayúsculas}
+\bugMeta{\sevAlt}{P2}{\texttt{auth} · registro}{\resCerrado}
+\bugCampo{Entorno}{Backend perfil \texttt{prod}; PostgreSQL (Testcontainers).}
+\bugBloque{Pasos para reproducir}{1. Registrar \texttt{ana.dev@test.io}. 2. Registrar
+\texttt{Ana.Dev@test.io}. 3. Consultar la tabla de perfiles.}
+\bugCampo{Resultado esperado}{El segundo registro responde \texttt{409}; una sola fila.}
+\bugCampo{Resultado real}{Dos perfiles distintos para el mismo correo lógico.}
+\bugBloque{Análisis de causa raíz (RCA)}{La verificación de unicidad comparaba el correo
+sin normalizar. \textbf{Corrección:} se normaliza a minúsculas antes de validar y se añadió
+un índice único funcional \texttt{LOWER(email)}. Verificado por \comando{TC-S1-018}.}
+\end{FichaBug}
+
+\begin{FichaBug}{BUG-S1-004}{Mensaje de error de login revela existencia de la cuenta}
+\bugMeta{\sevMed}{P3}{\texttt{auth} · login}{\resCerrado}
+\bugCampo{Entorno}{Backend perfil \texttt{prod}; staging.}
+\bugBloque{Pasos para reproducir}{1. Intentar login con un correo inexistente. 2. Intentar
+login con un correo existente y contraseña errónea. 3. Comparar ambos mensajes.}
+\bugCampo{Resultado esperado}{Mensaje genérico idéntico en ambos casos.}
+\bugCampo{Resultado real}{"Usuario no encontrado" vs. "Contraseña incorrecta", permitiendo
+enumeración de usuarios.}
+\bugBloque{Análisis de causa raíz (RCA)}{Los mensajes diferenciados filtraban información.
+\textbf{Corrección:} se unificó a "Credenciales inválidas" para ambos casos. Verificado por
+\comando{TC-S1-020}.}
+\end{FichaBug}
+
+\begin{FichaBug}{BUG-S1-006}{El store del frontend no limpia la sesión tras logout}
+\bugMeta{\sevAlt}{P2}{\texttt{frontend} · authStore}{\resCerrado}
+\bugCampo{Entorno}{Frontend React 18 / Zustand; Vitest + Testing Library.}
+\bugBloque{Pasos para reproducir}{1. Iniciar sesión. 2. Pulsar "Cerrar sesión". 3. Navegar
+de nuevo a una vista privada sin recargar.}
+\bugCampo{Resultado esperado}{El store queda vacío y la vista redirige a \texttt{/login}.}
+\bugCampo{Resultado real}{El objeto \texttt{user} persistía en memoria; la vista mostraba
+brevemente datos del usuario anterior.}
+\bugBloque{Análisis de causa raíz (RCA)}{\texttt{logout()} limpiaba el token pero no el
+objeto \texttt{user} ni el estado derivado. \textbf{Corrección:} \texttt{logout()} ahora
+resetea el \textit{slice} completo con \texttt{set(initialState)}. Verificado por
+\comando{TC-S1-016}.}
+\end{FichaBug}
+
+\begin{FichaBug}{BUG-S1-007}{La política de contraseñas aceptaba claves débiles}
+\bugMeta{\sevMed}{P3}{\texttt{auth} · validador}{\resCerrado}
+\bugCampo{Entorno}{Backend perfil \texttt{dev}; prueba unitaria.}
+\bugBloque{Pasos para reproducir}{1. Registrar con contraseña \texttt{"12345678"}. 2.
+Observar la respuesta.}
+\bugCampo{Resultado esperado}{\texttt{400} por contraseña que no cumple la complejidad.}
+\bugCampo{Resultado real}{\texttt{201}: la cuenta se creaba con una clave solo numérica.}
+\bugBloque{Análisis de causa raíz (RCA)}{La expresión regular solo exigía longitud mínima.
+\textbf{Corrección:} se reforzó a exigir mayúscula, minúscula y dígito. Verificado por
+\comando{TC-S1-001}.}
+\end{FichaBug}
+
+\begin{FichaBug}{BUG-S1-008}{\texttt{oauth/sync} duplica perfil por condición de carrera}
+\bugMeta{\sevMed}{P3}{\texttt{auth} · OAuth sync}{\resCerrado}
+\bugCampo{Entorno}{Backend perfil \texttt{prod}; dos peticiones concurrentes de sincronización.}
+\bugBloque{Pasos para reproducir}{1. Disparar dos \comando{POST /oauth/sync} simultáneos
+para el mismo usuario recién autenticado. 2. Consultar la tabla de perfiles.}
+\bugCampo{Resultado esperado}{Un único perfil (operación idempotente).}
+\bugCampo{Resultado real}{Dos filas para el mismo \texttt{sub} de Supabase.}
+\bugBloque{Análisis de causa raíz (RCA)}{El patrón "comprobar-luego-insertar" no era
+atómico. \textbf{Corrección:} se reemplazó por \texttt{INSERT ... ON CONFLICT (auth\_id)
+DO NOTHING} amparado en el índice único. Verificado por \comando{TC-S1-024}.}
+\end{FichaBug}
+
+\begin{FichaBug}{BUG-S1-009}{\texttt{ProtectedRoute} muestra contenido antes de redirigir}
+\bugMeta{\sevBaj}{P4}{\texttt{frontend} · router}{\resCerrado}
+\bugCampo{Entorno}{Frontend React 18 / react-router-dom 6.}
+\bugBloque{Pasos para reproducir}{1. Sin sesión, navegar directamente a
+\texttt{/dashboard}. 2. Observar el primer fotograma de render.}
+\bugCampo{Resultado esperado}{Redirección inmediata a \texttt{/login} sin destello.}
+\bugCampo{Resultado real}{Parpadeo (\textit{flash}) del layout privado antes de redirigir.}
+\bugBloque{Análisis de causa raíz (RCA)}{La comprobación de sesión era asíncrona y el
+componente renderizaba antes de resolverla. \textbf{Corrección:} se añadió un estado
+\texttt{loading} que muestra un \textit{spinner} hasta resolver la sesión. Verificado por
+\comando{TC-S1-039}.}
+\end{FichaBug}
+
+\subsection{Estado de Resolución y Resultados de Retesteo}
+\label{sec:s1-retesteo}
+
+\vspace{0.1cm}
+\noindent
+\renewcommand{\arraystretch}{1.3}
+\fontsize{8.5}{10.2}\selectfont\sffamily
+\begin{tabularx}{\textwidth}{|>{\ttfamily\bfseries\color{colorPrimario}}p{2.0cm}|c|>{\centering\arraybackslash}p{2.0cm}|>{\ttfamily}p{2.2cm}|Y|}
+\hline
+\rowcolor{headerTabla}
+\sffamily\textbf{ID} & \sffamily\textbf{Sev.} & \sffamily\textbf{Estado} & \sffamily\textbf{Retest} & \sffamily\textbf{Resultado} \\
+\hline
+BUG-S1-001 & \sevAlt & \resCerrado & TC-S1-018 & \bPass \\ \hline
+\rowcolor{grisTecnico}
+BUG-S1-002 & \sevAlt & \resCerrado & TC-S1-007 & \bPass \\ \hline
+BUG-S1-003 & \sevCrit & \resCerrado & TC-S1-038 & \bPass \\ \hline
+\rowcolor{grisTecnico}
+BUG-S1-004 & \sevMed & \resCerrado & TC-S1-020 & \bPass \\ \hline
+BUG-S1-005 & \sevCrit & \resCerrado & TC-S1-035 & \bPass \\ \hline
+\rowcolor{grisTecnico}
+BUG-S1-006 & \sevAlt & \resCerrado & TC-S1-016 & \bPass \\ \hline
+BUG-S1-007 & \sevMed & \resCerrado & TC-S1-001 & \bPass \\ \hline
+\rowcolor{grisTecnico}
+BUG-S1-008 & \sevMed & \resCerrado & TC-S1-024 & \bPass \\ \hline
+BUG-S1-009 & \sevBaj & \resCerrado & TC-S1-039 & \bPass \\ \hline
+\end{tabularx}
+
+% =============================================================================
+\clearpage
+\section{Reporte de Validación y Aprobación del Sprint}
+\label{sec:s1-validacion}
+
+\subsection{Métricas de Calidad del Sprint}
+\label{sec:s1-metricas}
+
+\barraCobertura{84}{Cobertura de líneas del backend (módulo \texttt{auth} + \texttt{security})}
+\barraCobertura{78}{Cobertura de ramas del backend (validaciones y flujos OTP)}
+\barraCobertura{71}{Cobertura de componentes del frontend (formularios y store de auth)}
+
+\vspace{0.2cm}
+\noindent
+\renewcommand{\arraystretch}{1.35}
+\fontsize{8.5}{10.2}\selectfont\sffamily
+\begin{tabularx}{\textwidth}{|>{\bfseries\color{colorPrimario}}p{6.0cm}|c|Y|}
+\hline
+\rowcolor{headerTabla}
+\sffamily\textbf{Métrica} & \sffamily\textbf{Valor} & \sffamily\textbf{Meta} \\
+\hline
+Tasa de aprobación de casos & 82,5\% & $\geq 80\%$ \\ \hline
+\rowcolor{grisTecnico}
+Densidad de defectos (def./caso) & 0,225 & $\leq 0,30$ \\ \hline
+Defectos críticos abiertos al cierre & 0 & 0 \\ \hline
+\rowcolor{grisTecnico}
+Defectos resueltos y verificados & 9 / 9 & 100\% \\ \hline
+Eficiencia de remoción de defectos & 100\% & $\geq 95\%$ \\ \hline
+\end{tabularx}
+
+\subsection{Conclusión de Aceptación}
+\label{sec:s1-conclusion}
+
+\begin{Veredicto}
+\textbf{Sprint 1 — APROBADO.} Los 40 casos de prueba se ejecutaron en su totalidad con una
+tasa de aprobación del 82,5\%. Los 9 defectos detectados —incluidos los 2 críticos de
+seguridad— fueron corregidos y verificados dentro de la iteración, sin defectos críticos
+abiertos al cierre. Los cimientos de identidad y seguridad de EthosHub quedan validados
+como base estable para los incrementos siguientes.
+\end{Veredicto}
